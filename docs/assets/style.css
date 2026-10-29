@@ -176,25 +176,26 @@ main { padding-top: 7rem; }
     margin-bottom: 1.4rem;
 }
 
-/* load-time reveal — content is fully visible without animation */
+/* load-time reveal — only applied once JS confirms the compositor pumps
+   frames (html.motion). Without it, content is simply visible. */
 @keyframes rise {
     from { opacity: 0; transform: translateY(16px); }
     to   { opacity: 1; transform: translateY(0); }
 }
-.reveal { animation: rise 0.9s var(--ease-out) both; }
-.reveal.d1 { animation-delay: 0.08s; }
-.reveal.d2 { animation-delay: 0.16s; }
-.reveal.d3 { animation-delay: 0.26s; }
+html.motion .reveal { animation: rise 0.9s var(--ease-out) both; }
+html.motion .reveal.d1 { animation-delay: 0.08s; }
+html.motion .reveal.d2 { animation-delay: 0.16s; }
+html.motion .reveal.d3 { animation-delay: 0.26s; }
 
-/* scroll reveal — needs JS, degrades to visible */
-[data-reveal] {
+/* scroll reveal — needs JS + working compositor, degrades to visible */
+html.motion [data-reveal] {
     opacity: 0;
     transform: translateY(22px);
     transition: opacity 0.8s var(--ease-out), transform 0.8s var(--ease-out);
 }
-[data-reveal].revealed { opacity: 1; transform: none; }
-[data-reveal="2"] { transition-delay: 0.08s; }
-[data-reveal="3"] { transition-delay: 0.16s; }
+html.motion [data-reveal].revealed { opacity: 1; transform: none; }
+html.motion [data-reveal="2"] { transition-delay: 0.08s; }
+html.motion [data-reveal="3"] { transition-delay: 0.16s; }
 
 /* ============ hero ============ */
 
@@ -270,6 +271,8 @@ main { padding-top: 7rem; }
     transform-origin: 50% 0%;
 }
 .term-shell.boot { animation: crtOn 0.8s var(--ease-spring) both; }
+/* CRT power-on only fires when JS confirmed live frames (html.motion) */
+html:not(.motion) .term-shell.boot { animation: none; }
 @keyframes crtOn {
     0%   { transform: scaleX(0.55) scaleY(0.004); filter: brightness(7); opacity: 0.4; }
     38%  { transform: scaleX(1) scaleY(0.004);    filter: brightness(5); opacity: 1; }

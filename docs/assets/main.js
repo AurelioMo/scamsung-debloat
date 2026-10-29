@@ -6,6 +6,18 @@
 
     var reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
+    /* Only animate when the compositor actually pumps frames: double rAF is
+       the proof. If it never fires (blocked JS, dead compositor), every
+       animation-dependent style stays off and content is fully visible. */
+    var motionOK = !reduced && "requestAnimationFrame" in window;
+    if (motionOK) {
+        requestAnimationFrame(function () {
+            requestAnimationFrame(function () {
+                document.documentElement.classList.add("motion");
+            });
+        });
+    }
+
     /* ---------- reveal on scroll ---------- */
     var revealEls = document.querySelectorAll("[data-reveal]");
     if (revealEls.length) {
@@ -135,7 +147,7 @@
     function autoplay() {
         if (played) return;
         played = true;
-        run(!reduced);
+        run(motionOK);
     }
     if (reduced || !("IntersectionObserver" in window)) {
         run(false);
@@ -151,10 +163,10 @@
         chip.addEventListener("click", function () {
             setPreset(chip.dataset.preset);
             played = true;
-            run(!reduced);
+            run(motionOK);
         });
     });
     if (replayBtn) {
-        replayBtn.addEventListener("click", function () { run(!reduced); });
+        replayBtn.addEventListener("click", function () { run(motionOK); });
     }
 })();
