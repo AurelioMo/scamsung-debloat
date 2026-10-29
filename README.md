@@ -1,3 +1,10 @@
+```
+  ╔═╗┌─┐┌─┐┌┬┐┌─┐┬ ┬┌┐┌┌─┐
+  ╚═╗│  ├─┤│││└─┐│ │││││ ┬
+  ╚═╝└─┘┴ ┴┴ ┴└─┘└─┘┘└┘└─┘
+      ··· d e b l o a t ···
+```
+
 # scamsung-debloat
 
 Remove Samsung bloatware **without root** on One UI 8/9 — macOS, Linux and Windows.
@@ -7,6 +14,12 @@ with presets based on
 [itxjobe/samsungdebloat](https://github.com/itxjobe/samsungdebloat).
 
 **No terminal skills needed: double-click the file, pick numbers from a menu.**
+
+The interface speaks **your language** — the script follows the OS language
+automatically (Português, English, Español) and every flow, menu, warning and
+error message is translated. Override with `SCAMSUNG_LANG=pt|en|es` if you want.
+New languages are one file in `lang/` away; `self-test` checks that all
+translations stay in sync.
 
 ---
 
@@ -186,8 +199,9 @@ For scripting or repeat runs, the same operations exist as flags:
 #   -v / -q          verbose / quiet
 ```
 
-Environment: `ANDROID_SERIAL` (same as `--serial`),
-`SCAMSUNG_DEBLOAT_DATA_DIR` (state/logs location), `NO_COLOR=1`.
+Environment: `ANDROID_SERIAL` (same as `--serial`), `SCAMSUNG_LANG=pt|en|es`
+(force the UI language), `SCAMSUNG_DEBLOAT_DATA_DIR` (state/logs location),
+`NO_COLOR=1`.
 
 </details>
 
@@ -200,7 +214,7 @@ phone required, and no real device is ever touched by the tests:
 bash tests/run.sh
 ```
 
-65 checks: self-test, doctor, scan, mandatory preview, apply, deny-list,
+73 checks: self-test, doctor, scan, mandatory preview, apply, deny-list,
 nonexistent packages, restore, disable mode, `--skip`, presets, and every tweak
 path (idempotence, status, exact reset, `--performance`, `--ram-plus`).
 
@@ -214,6 +228,9 @@ lists/basic.txt           # 51 packages, each explained
 lists/light.txt           # 98
 lists/heavy.txt           # 126
 lists/README.md           # preset file format
+lang/pt-BR.sh             # interface strings, complete baseline
+lang/en.sh                # English overlay
+lang/es.sh                # Spanish overlay
 tests/adb                 # fake adb (Galaxy One UI 9 simulator)
 tests/run.sh              # test suite
 docs/oneui-compat.md      # One UI 8/9 compatibility notes (pt-BR)

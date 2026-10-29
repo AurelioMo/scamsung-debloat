@@ -7,6 +7,7 @@ export PATH="$ROOT/tests:$PATH"
 export FAKE_ADB_STATE="$(mktemp -d "${TMPDIR:-/tmp}/fake-adb.XXXXXX")"
 export SCAMSUNG_DEBLOAT_DATA_DIR="$(mktemp -d "${TMPDIR:-/tmp}/scamsung-debloat-data.XXXXXX")"
 export NO_COLOR=1
+export SCAMSUNG_LANG=pt-BR
 
 FAILS=0
 CHECKS=0
@@ -188,6 +189,26 @@ assert_contains "status mostra pacote desativado" "$out" "com.samsung.android.ga
 sc -y tweaks --reset >/dev/null 2>&1
 assert_file_lacks "reset reativa GOS" "$FAKE_ADB_STATE/disabled.txt" "com.samsung.android.game.gos"
 assert_contains "reset devolve RAM Plus" "$(cat "$FAKE_ADB_STATE/settings-db.txt" 2>/dev/null)" "ram_expand_size=2048"
+
+printf '\n== idiomas ==\n'
+out="$(SCAMSUNG_LANG=en sc -h 2>&1)"
+assert_contains "ajuda em inglês" "$out" "USAGE"
+out="$(SCAMSUNG_LANG=es sc -h 2>&1)"
+assert_contains "ajuda em espanhol" "$out" "menú interactivo"
+out="$(SCAMSUNG_LANG=pt sc -h 2>&1)"
+assert_contains "ajuda em português" "$out" "menu interativo"
+out="$(SCAMSUNG_LANG=fr sc -h 2>&1)"
+assert_contains "idioma desconhecido cai no inglês" "$out" "USAGE"
+out="$(SCAMSUNG_LANG=pt sc -h 2>&1)"
+assert_contains "logo ASCII aparece" "$out" "d e b l o a t"
+out="$(sc --version 2>&1)"
+assert_contains "--version imprime versão" "$out" "scamsung-debloat 1.7.0"
+out="$(sc statu 2>&1)"
+assert_contains "comando errado sugere" "$out" "status"
+
+printf '\n== self-test de idiomas ==\n'
+out="$(sc self-test 2>&1)"
+assert_contains "self-test cobre idiomas" "$out" "mensagens por idioma"
 
 printf '\n----------------------------------------\n'
 if [ "$FAILS" -eq 0 ]; then
