@@ -11,6 +11,9 @@
 <meta property="og:title" content="scamsung-debloat — Remove Samsung bloatware without root">
 <meta property="og:description" content="Debloat Samsung Galaxy (One UI 8/9) without root. Double-click numbered menu, honest presets, mandatory preview, fully reversible.">
 <meta property="og:url" content="https://aureliomo.github.io/scamsung-debloat/">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Onest:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/style.css">
 <script type="application/ld+json">
 {
@@ -28,161 +31,272 @@
 </head>
 <body>
 <a class="skip-link" href="#main">Skip to content</a>
-<header class="site">
-  <div class="wrap">
-    <a class="brand" href="./"><b>scamsung</b>-debloat</a>
-    <nav class="site" aria-label="Main">
-      <a href="./" aria-current="page">Home</a>
-      <a href="install.html">Install</a>
-      <a href="safety.html">Safety &amp; restore</a>
-      <a href="compatibility.html">Compatibility</a>
-      <a class="github" href="https://github.com/AurelioMo/scamsung-debloat">GitHub</a>
-    </nav>
-  </div>
-</header>
+<div class="glow" aria-hidden="true"></div>
+
+<nav class="nav" aria-label="Main">
+  <a class="wordmark" href="./"><b>$</b> scamsung-debloat</a>
+  <a href="./" aria-current="page">home</a>
+  <a href="install.html">install</a>
+  <a href="safety.html">safety</a>
+  <a href="compatibility.html">compat</a>
+  <a class="gh" href="https://github.com/AurelioMo/scamsung-debloat">github ↗</a>
+</nav>
 
 <main id="main">
 <div class="wrap">
 
-<div class="hero">
-  <div class="logo" aria-hidden="true">  ╔═╗┌─┐┌─┐┌┬┐┌─┐┬ ┬┌┐┌┌─┐
-  ╚═╗│  ├─┤│││└─┐│ │││││ ┬
-  ╚═╝└─┘┴ ┴┴ ┴└─┘└─┘┘└┘└─┘
-      ··· d e b l o a t ···</div>
-  <h1>Samsung debloat, minus the scary parts</h1>
-  <p class="tagline">Remove Galaxy bloatware on One UI 8/9 <strong>without root</strong>.
-  Double-click a file, pick numbers from a menu, review the exact list of what
-  leaves your phone, and undo everything with one command.</p>
-  <div class="cta">
-    <a class="btn primary" href="install.html">Install in 5 minutes</a>
-    <a class="btn" href="https://github.com/AurelioMo/scamsung-debloat">View on GitHub</a>
-  </div>
-</div>
+  <div class="hero">
+    <div class="hero-frame">
+      <span class="eyebrow reveal">no root · reversible · one ui 8/9</span>
+      <h1 class="reveal d1">Debloat your Galaxy<br>without root.<br><span class="prompt">Undo in one command.</span></h1>
+      <p class="lede reveal d2"><strong>scamsung-debloat</strong> is a tiny open-source CLI
+      for Samsung phones on One UI 8/9. Double-click a file, pick numbers from a menu,
+      review the exact list of what leaves your phone — and restore everything if you
+      change your mind.</p>
+      <div class="cta-row reveal d3">
+        <a class="btn primary" href="install.html">Install in 5 minutes <span class="orb">↗</span></a>
+        <a class="btn ghost" href="https://github.com/AurelioMo/scamsung-debloat">View on GitHub <span class="orb">↗</span></a>
+      </div>
+    </div>
 
-<div class="grid">
-  <div class="card">
-    <h3>No root. Ever.</h3>
-    <p>Everything runs through <code>adb shell pm … --user 0</code> — the stock
-    Android mechanism. Knox, bootloader and warranty are never touched.</p>
-  </div>
-  <div class="card">
-    <h3>Preview before anything</h3>
-    <p>You always see the full removal list first and must type
-    <code>sim</code> to continue. There is no way to skip the preview.</p>
-  </div>
-  <div class="card">
-    <h3>Reversible by design</h3>
-    <p>Every action is logged. <em>Restore everything</em> brings each app back;
-    tweaks restore their exact original values.</p>
-  </div>
-  <div class="card">
-    <h3>Honest presets</h3>
-    <p>Each of the 51–126 packages in a preset has a plain-language line saying
-    what it is and what stops working without it.</p>
-  </div>
-  <div class="card">
-    <h3>Your language</h3>
-    <p>The whole interface — menus, warnings, errors — speaks Português,
-    English or Español, following your OS automatically.</p>
-  </div>
-  <div class="card">
-    <h3>Tested, not on your phone</h3>
-    <p>73 automated checks run against a fake adb simulating a Galaxy on
-    One UI 9. No real device is ever needed to validate the tool.</p>
-  </div>
-</div>
+    <div class="term-shell reveal d4">
+      <div class="term">
+        <div class="term-bar">
+          <span class="dots" aria-hidden="true"><i></i><i></i><i></i></span>
+          <span>adb · Galaxy (test simulator) · One UI 9.0</span>
+        </div>
+        <pre><b><span class="c-cmd">$ ./scamsung-debloat apply basic</span>
+<span class="c-head">  SM-S931B (e1q) · Android 17 | One UI 9.0</span>
+<span class="c-head">==&gt; Reading packages from the device</span>
+  55 installed now / 55 known to the device
+<span class="c-head">==&gt; Preview: preset basic</span>
+  51 packages in the list
+  ~ com.facebook.katana          — Facebook
+  ~ com.netflix.mediaclient      — Netflix
+  ~ com.samsung.android.aremoji  — AR Emoji
+  <span class="c-dim">… 48 more lines, each with its explanation …</span>
 
-<h2 id="how-it-works">How it works</h2>
-<p>scamsung-debloat is a single bash script (with tiny Windows wrappers). When you
-pick a preset, it asks your phone which packages actually exist, subtracts a
-built-in deny-list of critical components, shows you what remains, and only then
-removes apps from your user profile:</p>
-<ol class="steps">
-  <li><strong>Diagnostics</strong> — checks adb, the device and your Android/One UI version.</li>
-  <li><strong>Preview</strong> — prints every package to be removed, each with its explanation,
-      plus counts of what is already gone or missing.</li>
-  <li><strong>Confirmation</strong> — type <code>sim</code>. Anything else cancels safely.</li>
-  <li><strong>Apply</strong> — <code>pm uninstall --user 0</code> per package; failures fall back
-      to disabling the app (data preserved).</li>
-  <li><strong>Undo anytime</strong> — menu option 4 restores everything this tool ever removed.</li>
-</ol>
+<span class="c-in">Type sim to continue:</span> <span class="c-in">sim</span><span class="caret"></span>
+<span class="c-head">==&gt; Applying (uninstall)</span>
+<span class="c-add">  + com.facebook.katana  — Facebook</span>
+<span class="c-add">  + com.sec.android.app.sbrowser  — Samsung Internet</span>
+  <span class="c-dim">…</span>
+<span class="c-head">==&gt; Summary</span>
+  removed: 20 · disabled: 0 · missing on device: 31
+<span class="c-add">  Undo: ./scamsung-debloat restore</span></b></pre>
+      </div>
+    </div>
+    <p class="term-caption reveal d5">// a verbatim run against the project's fake-adb test rig — your phone shows the same flow with its own numbers</p>
 
-<h2 id="presets">Three presets, nested</h2>
-<table>
-  <thead>
-    <tr><th>Preset</th><th>Packages</th><th>What goes away</th><th>Risk</th></tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><code>basic</code></td><td>51</td>
-      <td>Preinstalled junk only: Facebook/Netflix/Booking/Amazon, duplicate Samsung
-      user apps, Game Launcher, AR Emoji.</td>
-      <td><strong>Low.</strong> No system component touched; Samsung account, Wallet and Galaxy AI stay.</td>
-    </tr>
-    <tr>
-      <td><code>light</code></td><td>98</td>
-      <td>Everything in <code>basic</code>, plus Chrome, Gmail, "Ok Google", Android Auto,
-      Galaxy Themes, Samsung Pass, Wallet, Bixby, Find My Mobile.</td>
-      <td><strong>Medium.</strong> Only if you already replaced those with other apps.</td>
-    </tr>
-    <tr>
-      <td><code>heavy</code></td><td>126</td>
-      <td>Everything in <code>light</code>, plus YouTube, Maps, Gemini, Docs/Sheets/Slides,
-      printing stack, SmartThings, Interpreter.</td>
-      <td><strong>Medium-high.</strong> Maximum that is still reversible. Have replacements first.</td>
-    </tr>
-  </tbody>
-</table>
-<p>Never removed, in any preset: Play Store/Services, SystemUI, Settings, the
-One UI launcher, phone/dialer, IMS/VoLTE/Wi-Fi calling, Samsung keyboard and the
-setup wizard — see <a href="safety.html#deny-list">the deny-list</a>.</p>
+    <div class="stats">
+      <div class="stat"><div class="n">51<em>·</em>98<em>·</em>126</div><div class="l">packages per preset, each explained</div></div>
+      <div class="stat"><div class="n">73</div><div class="l">automated checks, zero devices needed</div></div>
+      <div class="stat"><div class="n">3</div><div class="l">interface languages (PT · EN · ES)</div></div>
+      <div class="stat"><div class="n">0<em>%</em></div><div class="l">root involved, Knox untouched</div></div>
+    </div>
+  </div>
 
-<h2 id="why-not-canta-or-uad">Why not Canta or UAD?</h2>
-<p><a href="https://github.com/Universal-Debloater-Alliance/universal-android-debloater-next-generation">Universal
-Android Debloater</a> and <a href="https://github.com/samolego/Canta">Canta</a> are
-great projects — scamsung-debloat borrows risk knowledge from them. It exists for
-the people they don't serve well: Galaxy owners who don't want to learn a new app,
-who want a menu in their own language, presets built specifically for
-One UI 8/9 (based on <a href="https://github.com/itxjobe/samsungdebloat">itxjobe's
-community-tested lists</a>), and a restore path that doesn't depend on keeping
-Shizuku alive.</p>
+  <section id="features">
+    <div class="sec-head">
+      <h2>Built to be boring<br>about the scary parts</h2>
+      <p>Everything a debloat flow should do by default — and most tools skip.</p>
+    </div>
+    <div class="bento">
+      <div class="cell">
+        <div class="shell"><div class="core">
+          <h3><span class="k">01</span>No root. Ever.</h3>
+          <p>Only <code>adb shell pm … --user 0</code> — stock Android mechanism.
+          Knox, bootloader, warranty and Play Integrity are never touched.</p>
+        </div></div>
+      </div>
+      <div class="cell">
+        <div class="shell"><div class="core">
+          <h3><span class="k">02</span>Preview or nothing</h3>
+          <p>You always see the full removal list first and must type
+          <code>sim</code>. There is no flag that skips the preview.</p>
+        </div></div>
+      </div>
+      <div class="cell">
+        <div class="shell"><div class="core">
+          <h3><span class="k">03</span>Reversible by design</h3>
+          <p>Every action is logged. Menu option 4 restores each app;
+          <code>tweaks --reset</code> returns every setting to its original value.</p>
+        </div></div>
+      </div>
+      <div class="cell">
+        <div class="shell"><div class="core">
+          <h3><span class="k">04</span>Presets that explain</h3>
+          <p>Every one of the 51–126 packages has a plain-language line: what it
+          is, and what stops working without it.</p>
+        </div></div>
+      </div>
+      <div class="cell">
+        <div class="shell"><div class="core">
+          <h3><span class="k">05</span>Speaks your language</h3>
+          <p>Menus, warnings and errors follow your OS — Português, English,
+          Español. The whole flow, not just the docs.</p>
+        </div></div>
+      </div>
+      <div class="cell">
+        <div class="shell"><div class="core">
+          <h3><span class="k">06</span>Tested, not on your phone</h3>
+          <p>73 checks run against a fake adb simulating One UI 9.
+          Your firmware is the final preview — which is why the preview exists.</p>
+        </div></div>
+      </div>
+    </div>
+  </section>
 
-<h2 id="faq">Quick answers</h2>
-<details>
-  <summary>Does it need root? Does it trip Knox?</summary>
-  <p>No and no. It uses <code>adb shell pm … --user 0</code>, a stock Android feature.
-  Bootloader, <code>/system</code>, Knox and Play Integrity are untouched.</p>
-</details>
-<details>
-  <summary>Can I undo it?</summary>
-  <p>Yes — menu option 4 restores everything the tool removed, and
-  <code>tweaks --reset</code> restores every setting to its recorded original value.</p>
-</details>
-<details>
-  <summary>Will an OTA update bring the apps back?</summary>
-  <p>Samsung OTAs sometimes reinstall their apps. Nothing breaks — run the same
-  preset again.</p>
-</details>
-<details>
-  <summary>Does it free up storage?</summary>
-  <p>No: APKs stay in the read-only system partition. The gains are RAM, background
-  battery drain, privacy and a clean app drawer.</p>
-</details>
-<p>More in <a href="safety.html">Safety &amp; restore</a> and
-<a href="compatibility.html">Compatibility</a>.</p>
+  <section id="how">
+    <div class="sec-head">
+      <h2>How a run actually goes</h2>
+      <p>Five steps. Nothing happens without step 3.</p>
+    </div>
+    <div class="steps">
+      <div class="step">
+        <span class="no">01</span>
+        <div><h3>Diagnostics</h3>
+        <p>The tool checks adb, the device and your Android/One UI version before anything else.</p></div>
+      </div>
+      <div class="step">
+        <span class="no">02</span>
+        <div><h3>Preview</h3>
+        <p>Only packages that actually exist on your phone are listed — minus a built-in deny-list
+        of critical components. Each line explains itself.</p></div>
+      </div>
+      <div class="step">
+        <span class="no">03</span>
+        <div><h3>Typed confirmation</h3>
+        <p><code>sim</code> or nothing happens. Closing the window cancels safely.</p></div>
+      </div>
+      <div class="step">
+        <span class="no">04</span>
+        <div><h3>Apply</h3>
+        <p><code>pm uninstall --user 0</code> per package; failures fall back to disabling the app
+        with its data preserved.</p></div>
+      </div>
+      <div class="step">
+        <span class="no">05</span>
+        <div><h3>Undo anytime</h3>
+        <p>Menu option 4 restores everything this tool ever removed. Reboot, done.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="presets">
+    <div class="sec-head">
+      <h2>Three presets, nested</h2>
+      <p><code>heavy</code> contains <code>light</code> contains <code>basic</code>. Start low; you can always run again.</p>
+    </div>
+    <div class="preset-grid">
+      <div class="preset">
+        <div class="shell"><div class="core">
+          <div class="top"><span class="name">basic</span><span class="count">51 pkgs</span></div>
+          <p>Preinstalled junk only: Facebook/Netflix/Booking/Amazon, duplicate Samsung
+          user apps, Game Launcher, AR Emoji. Samsung account, Wallet and Galaxy AI stay.</p>
+          <span class="chip low">low risk</span>
+        </div></div>
+      </div>
+      <div class="preset">
+        <div class="shell"><div class="core">
+          <div class="top"><span class="name">light</span><span class="count">98 pkgs</span></div>
+          <p>Everything in basic, plus Chrome, Gmail, "Ok Google", Android Auto, Galaxy Themes,
+          Samsung Pass, Wallet, Bixby, Find My Mobile.</p>
+          <span class="chip mid">medium — have replacements</span>
+        </div></div>
+      </div>
+      <div class="preset">
+        <div class="shell"><div class="core">
+          <div class="top"><span class="name">heavy</span><span class="count">126 pkgs</span></div>
+          <p>Everything in light, plus YouTube, Maps, Gemini, Docs/Sheets/Slides, printing stack,
+          SmartThings, Interpreter. The maximum that is still reversible.</p>
+          <span class="chip high">medium-high — read every line</span>
+        </div></div>
+      </div>
+    </div>
+    <p class="deny-note"><span class="tag">[never removed]</span> Play Store/Services · SystemUI · Settings ·
+    One UI launcher · dialer · IMS/VoLTE/Wi-Fi calling · Samsung keyboard · setup wizard —
+    the <a href="safety.html#deny-list">deny-list</a> applies even to manual requests.</p>
+  </section>
+
+  <section id="why">
+    <div class="sec-head">
+      <h2>Why not Canta or UAD?</h2>
+    </div>
+    <div class="panel"><div class="core">
+      <p><a href="https://github.com/Universal-Debloater-Alliance/universal-android-debloater-next-generation">Universal
+      Android Debloater</a> and <a href="https://github.com/samolego/Canta">Canta</a> are great —
+      scamsung-debloat borrows risk knowledge from them. It exists for the people they don't
+      serve well: Galaxy owners who don't want to learn a new app or keep Shizuku alive, who
+      want a menu in their own language, presets built specifically for One UI 8/9
+      (from <a href="https://github.com/itxjobe/samsungdebloat">itxjobe's community-tested lists</a>),
+      and a restore path that is one menu option, not a factory reset.</p>
+    </div></div>
+  </section>
+
+  <section id="faq">
+    <div class="sec-head">
+      <h2>Quick answers</h2>
+    </div>
+    <div class="faq">
+      <details>
+        <summary>Does it need root? Does it trip Knox?<span class="pm">+</span></summary>
+        <p>No and no. It uses <code>adb shell pm … --user 0</code>, a stock Android feature.
+        Bootloader, <code>/system</code>, Knox and Play Integrity stay untouched — banking
+        apps and Google Pay keep working.</p>
+      </details>
+      <details>
+        <summary>Can I undo everything?<span class="pm">+</span></summary>
+        <p>Yes — menu option 4 restores every app the tool removed, and
+        <code>tweaks --reset</code> returns each setting to its recorded original value.</p>
+      </details>
+      <details>
+        <summary>Will an OTA update bring the apps back?<span class="pm">+</span></summary>
+        <p>Samsung OTAs sometimes reinstall their apps. Nothing breaks — run the same preset
+        again after the update.</p>
+      </details>
+      <details>
+        <summary>Does it free up storage?<span class="pm">+</span></summary>
+        <p>No. APKs stay in the read-only system partition. The gains are RAM, background
+        battery drain, privacy and a clean app drawer — not gigabytes.</p>
+      </details>
+      <details>
+        <summary>What if an app I keep depends on a removed one?<span class="pm">+</span></summary>
+        <p>That feature stops working (e.g. watch faces need Samsung services). Every preset
+        line warns you, the preview shows the full list first, and restore brings the
+        dependency back.</p>
+      </details>
+    </div>
+  </section>
+
+  <section class="final">
+    <div class="panel"><div class="core">
+      <h2>Ready when you are.</h2>
+      <p>adb installed, USB debugging on, one double-click. The preview shows up before
+      your phone changes in any way.</p>
+      <div class="install-line">
+        <code>brew install --cask android-platform-tools</code>
+        <code>git clone https://github.com/AurelioMo/scamsung-debloat.git</code>
+      </div>
+    </div></div>
+  </section>
 
 </div>
 </main>
 
-<footer class="site">
+<footer>
   <div class="wrap">
-    <p>scamsung-debloat is free software under the
-    <a href="https://github.com/AurelioMo/scamsung-debloat/blob/main/LICENSE">MIT license</a>.
-    Presets based on <a href="https://github.com/itxjobe/samsungdebloat">itxjobe/samsungdebloat</a>.
-    Not affiliated with Samsung or Google.</p>
-    <p><a href="https://github.com/AurelioMo/scamsung-debloat">Repository</a> ·
-    <a href="https://github.com/AurelioMo/scamsung-debloat/issues">Issues</a> ·
-    <a href="https://github.com/AurelioMo/scamsung-debloat/releases">Releases</a></p>
+    <div class="cols">
+      <span class="wordmark"><b>$</b> scamsung-debloat</span>
+      <span>
+        <a href="https://github.com/AurelioMo/scamsung-debloat">repository</a> ·
+        <a href="https://github.com/AurelioMo/scamsung-debloat/issues">issues</a> ·
+        <a href="https://github.com/AurelioMo/scamsung-debloat/releases">releases</a> ·
+        <a href="https://github.com/AurelioMo/scamsung-debloat/blob/main/LICENSE">MIT license</a>
+      </span>
+    </div>
+    <p class="legal">Presets based on <a href="https://github.com/itxjobe/samsungdebloat">itxjobe/samsungdebloat</a>.
+    Not affiliated with Samsung or Google. Use at your own risk.</p>
   </div>
 </footer>
 </body>

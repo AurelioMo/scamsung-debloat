@@ -11,107 +11,112 @@
 <meta property="og:title" content="Install scamsung-debloat — Samsung debloat without root">
 <meta property="og:description" content="Step-by-step: adb, USB debugging and first debloat run on macOS, Linux or Windows.">
 <meta property="og:url" content="https://aureliomo.github.io/scamsung-debloat/install.html">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Onest:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
 <a class="skip-link" href="#main">Skip to content</a>
-<header class="site">
-  <div class="wrap">
-    <a class="brand" href="./"><b>scamsung</b>-debloat</a>
-    <nav class="site" aria-label="Main">
-      <a href="./">Home</a>
-      <a href="install.html" aria-current="page">Install</a>
-      <a href="safety.html">Safety &amp; restore</a>
-      <a href="compatibility.html">Compatibility</a>
-      <a class="github" href="https://github.com/AurelioMo/scamsung-debloat">GitHub</a>
-    </nav>
-  </div>
-</header>
+<div class="glow" aria-hidden="true"></div>
+
+<nav class="nav" aria-label="Main">
+  <a class="wordmark" href="./"><b>$</b> scamsung-debloat</a>
+  <a href="./">home</a>
+  <a href="install.html" aria-current="page">install</a>
+  <a href="safety.html">safety</a>
+  <a href="compatibility.html">compat</a>
+  <a class="gh" href="https://github.com/AurelioMo/scamsung-debloat">github ↗</a>
+</nav>
 
 <main id="main">
 <div class="wrap">
 <article class="page">
-<h1>Install &amp; first run</h1>
-<p class="lede">About five minutes the first time; under one minute after that.
-You only type things in step 1 — the tool itself is a double-click menu.</p>
 
-<h2 id="step-1-adb">1. Install adb (once per computer)</h2>
-<table>
-  <thead><tr><th>Platform</th><th>Command</th></tr></thead>
-  <tbody>
-    <tr><td>macOS</td><td><code>brew install --cask android-platform-tools</code></td></tr>
-    <tr><td>Windows</td><td><code>winget install --id Google.PlatformTools -e</code><br>
-      (also install <a href="https://git-scm.com/download/win">Git for Windows</a> — the tool uses its bash)</td></tr>
-    <tr><td>Debian/Ubuntu</td><td><code>sudo apt install android-tools-adb</code></td></tr>
-    <tr><td>Fedora</td><td><code>sudo dnf install android-tools</code></td></tr>
-    <tr><td>Arch</td><td><code>sudo pacman -S android-tools</code></td></tr>
-  </tbody>
-</table>
-<p>Manual alternative for any platform: download the
-<a href="https://developer.android.com/tools/releases/platform-tools">official platform-tools ZIP</a>
-from Google and put its folder on your <code>PATH</code>.</p>
+  <span class="eyebrow reveal">01 · install</span>
+  <h1 class="reveal d1">Five minutes the first time.<br>One after that.</h1>
+  <p class="lede reveal d2">You only type things in step 1 — the tool itself is a
+  double-click menu that follows your language.</p>
 
-<h2 id="step-2-phone">2. Prepare the phone (once per phone)</h2>
-<ol class="steps">
-  <li><strong>Settings → About phone → Software information</strong></li>
-  <li>Tap <strong>Build number</strong> 7 times — Developer options is now unlocked.</li>
-  <li><strong>Settings → Developer options → USB debugging</strong> → turn it ON.</li>
-  <li>Plug the USB cable into the computer and tap <strong>Allow</strong> on the
-      phone's "Allow USB debugging?" prompt.</li>
-</ol>
-<div class="note"><p>No cable? The tool's menu option <strong>7</strong> pairs over
-Wi-Fi instead (Android 11+ wireless debugging).</p></div>
+  <h2 id="adb">Install adb — once per computer</h2>
+  <table>
+    <thead><tr><th>Platform</th><th>Command</th></tr></thead>
+    <tbody>
+      <tr><td><strong>macOS</strong></td><td><code>brew install --cask android-platform-tools</code></td></tr>
+      <tr><td><strong>Windows</strong></td><td><code>winget install --id Google.PlatformTools -e</code><br>
+        plus <a href="https://git-scm.com/download/win">Git for Windows</a> — the tool uses its bash</td></tr>
+      <tr><td><strong>Debian/Ubuntu</strong></td><td><code>sudo apt install android-tools-adb</code></td></tr>
+      <tr><td><strong>Fedora</strong></td><td><code>sudo dnf install android-tools</code></td></tr>
+      <tr><td><strong>Arch</strong></td><td><code>sudo pacman -S android-tools</code></td></tr>
+    </tbody>
+  </table>
+  <p>Manual alternative on any platform: the
+  <a href="https://developer.android.com/tools/releases/platform-tools">official platform-tools ZIP</a>
+  from Google, folder added to your <code>PATH</code>.</p>
 
-<h2 id="step-3-run">3. Run it (no typing)</h2>
-<ol class="steps">
-  <li>Download the repository:
-    <a href="https://github.com/AurelioMo/scamsung-debloat/archive/refs/heads/main.zip">ZIP</a>
-    (extract it) or <code>git clone https://github.com/AurelioMo/scamsung-debloat.git</code></li>
-  <li>Double-click:
-    <ul>
-      <li><strong>Windows:</strong> <code>scamsung-debloat.cmd</code></li>
-      <li><strong>macOS:</strong> <code>scamsung-debloat</code> — first time only:
-          right-click → Open → Open (Gatekeeper bypass for unsigned scripts).</li>
-      <li><strong>Linux:</strong> <code>scamsung-debloat</code> → choose
-          <em>Run in Terminal</em>. If nothing happens, enable
-          "Allow executing file as program" in the file's properties (or
-          <code>chmod +x scamsung-debloat</code>).</li>
-    </ul></li>
-  <li>A numbered menu appears. Recommended first run:
-    <strong>1</strong> (diagnostics) → <strong>2</strong> → <code>basic</code> →
-    read the preview → type <code>sim</code>.</li>
-</ol>
-<div class="warning"><p><strong>Nothing is removed before you type
-<code>sim</code>.</strong> Closing the window, pressing Ctrl+C or typing anything
-else cancels without touching the phone.</p></div>
+  <h2 id="phone">Prepare the phone — once per phone</h2>
+  <ol class="big-steps">
+    <li><strong>Settings → About phone → Software information</strong></li>
+    <li>Tap <strong>Build number</strong> 7 times — Developer options unlocked.</li>
+    <li><strong>Settings → Developer options → USB debugging</strong> → ON.</li>
+    <li>Plug the cable in and tap <strong>Allow</strong> on the phone's prompt.</li>
+  </ol>
+  <div class="callout">
+    <p><strong>No cable?</strong> Menu option <strong>7</strong> pairs over Wi-Fi
+    instead (Android 11+ wireless debugging).</p>
+  </div>
 
-<h2 id="cli">Prefer the command line?</h2>
-<p>Every menu action has a flag equivalent — same preview, same confirmation:</p>
-<pre><code>./scamsung-debloat doctor            # diagnostics
-./scamsung-debloat list              # show presets
-./scamsung-debloat apply basic       # preview → type "sim" → apply
+  <h2 id="run">Run it — no typing</h2>
+  <ol class="big-steps">
+    <li>Get the repo: <a href="https://github.com/AurelioMo/scamsung-debloat/archive/refs/heads/main.zip">download the ZIP</a>
+      and extract, or <code>git clone https://github.com/AurelioMo/scamsung-debloat.git</code></li>
+    <li>Double-click:
+      <strong>Windows</strong> <code>scamsung-debloat.cmd</code> ·
+      <strong>macOS</strong> <code>scamsung-debloat</code> (first time: right-click → Open → Open) ·
+      <strong>Linux</strong> <code>scamsung-debloat</code> → <em>Run in Terminal</em>
+      (or enable "Allow executing file as program").</li>
+    <li>Recommended first run: <strong>1</strong> diagnostics → <strong>2</strong> apply →
+      <code>basic</code> → read the preview → type <code>sim</code>.</li>
+  </ol>
+  <div class="callout ok">
+    <p><strong>Nothing is removed before you type <code>sim</code>.</strong>
+    Closing the window, Ctrl+C or any other input cancels without touching the phone.</p>
+  </div>
+
+  <h2 id="cli">Prefer the command line?</h2>
+  <p>Every menu action has a flag equivalent — same preview, same confirmation:</p>
+  <div class="codeblock"><pre>./scamsung-debloat doctor            <span class="cm"># diagnostics</span>
+./scamsung-debloat list              <span class="cm"># show presets</span>
+./scamsung-debloat apply basic       <span class="cm"># preview → type "sim" → apply</span>
 ./scamsung-debloat apply --only com.facebook.katana
-./scamsung-debloat explain &lt;package&gt; # what is this package?
-./scamsung-debloat restore           # undo everything
-./scamsung-debloat tweaks --status   # what tweaks changed</code></pre>
-<p>Options: <code>-y</code> (skip typing, preview still shown),
-<code>--disable</code> (disable instead of uninstall, keeps app data),
-<code>--skip a,b</code>, <code>--serial</code>, <code>-v</code>/<code>-q</code>,
-<code>--help</code>, <code>--version</code>.</p>
+./scamsung-debloat explain &lt;package&gt; <span class="cm"># what is this package?</span>
+./scamsung-debloat restore           <span class="cm"># undo everything</span>
+./scamsung-debloat tweaks --status   <span class="cm"># what tweaks changed</span></pre></div>
+  <p>Options: <code>-y</code> skip typing (preview still shown) ·
+  <code>--disable</code> disable instead of uninstall (keeps data) ·
+  <code>--skip a,b</code> · <code>--serial</code> · <code>-v</code>/<code>-q</code> ·
+  <code>--help</code> · <code>--version</code></p>
 
-<h2 id="language">Interface language</h2>
-<p>The tool follows your OS language automatically — Português, English or
-Español. Override with <code>SCAMSUNG_LANG=pt|en|es</code>.</p>
+  <h2 id="language">Interface language</h2>
+  <p>The tool follows your OS automatically — Português, English or Español.
+  Override with <code>SCAMSUNG_LANG=pt|en|es</code>.</p>
 
 </article>
 </div>
 </main>
 
-<footer class="site">
+<footer>
   <div class="wrap">
-    <p>scamsung-debloat — MIT licensed, not affiliated with Samsung or Google.</p>
-    <p><a href="https://github.com/AurelioMo/scamsung-debloat">Repository</a> ·
-    <a href="https://github.com/AurelioMo/scamsung-debloat/issues">Issues</a></p>
+    <div class="cols">
+      <span class="wordmark"><b>$</b> scamsung-debloat</span>
+      <span>
+        <a href="https://github.com/AurelioMo/scamsung-debloat">repository</a> ·
+        <a href="https://github.com/AurelioMo/scamsung-debloat/issues">issues</a> ·
+        <a href="https://github.com/AurelioMo/scamsung-debloat/releases">releases</a> ·
+        <a href="https://github.com/AurelioMo/scamsung-debloat/blob/main/LICENSE">MIT license</a>
+      </span>
+    </div>
+    <p class="legal">Not affiliated with Samsung or Google. Use at your own risk.</p>
   </div>
 </footer>
 </body>

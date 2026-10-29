@@ -11,122 +11,133 @@
 <meta property="og:title" content="Safety &amp; restore — scamsung-debloat">
 <meta property="og:description" content="What the tool actually runs, what it never touches, and how to undo everything.">
 <meta property="og:url" content="https://aureliomo.github.io/scamsung-debloat/safety.html">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Onest:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
 <a class="skip-link" href="#main">Skip to content</a>
-<header class="site">
-  <div class="wrap">
-    <a class="brand" href="./"><b>scamsung</b>-debloat</a>
-    <nav class="site" aria-label="Main">
-      <a href="./">Home</a>
-      <a href="install.html">Install</a>
-      <a href="safety.html" aria-current="page">Safety &amp; restore</a>
-      <a href="compatibility.html">Compatibility</a>
-      <a class="github" href="https://github.com/AurelioMo/scamsung-debloat">GitHub</a>
-    </nav>
-  </div>
-</header>
+<div class="glow" aria-hidden="true"></div>
+
+<nav class="nav" aria-label="Main">
+  <a class="wordmark" href="./"><b>$</b> scamsung-debloat</a>
+  <a href="./">home</a>
+  <a href="install.html">install</a>
+  <a href="safety.html" aria-current="page">safety</a>
+  <a href="compatibility.html">compat</a>
+  <a class="gh" href="https://github.com/AurelioMo/scamsung-debloat">github ↗</a>
+</nav>
 
 <main id="main">
 <div class="wrap">
 <article class="page">
-<h1>Safety &amp; restore</h1>
-<p class="lede">Debloating here is reversible — but never risk-free. This page is
-the exact contract: what runs on your phone, what can never run, and how to undo
-every bit of it.</p>
 
-<h2 id="what-it-runs">What the tool actually runs</h2>
-<p>Every phone change goes through <code>adb shell</code>, the same channel a
-power user would type by hand:</p>
-<table>
-  <thead><tr><th>Command</th><th>When</th><th>Effect</th></tr></thead>
-  <tbody>
-    <tr><td><code>pm uninstall --user 0 &lt;pkg&gt;</code></td><td>Removing an app (default method)</td>
-        <td>Uninstalls the app for your user profile only. The APK stays in
-        <code>/system</code>, untouched.</td></tr>
-    <tr><td><code>pm disable-user --user 0 &lt;pkg&gt;</code></td><td>Fallback, or <code>--disable</code> mode</td>
-        <td>Disables the app, keeping its data.</td></tr>
-    <tr><td><code>cmd package install-existing &lt;pkg&gt;</code></td><td>Restoring a removed app</td>
-        <td>Reinstalls the stock APK for your user.</td></tr>
-    <tr><td><code>pm enable &lt;pkg&gt;</code></td><td>Restoring a disabled app</td>
-        <td>Re-enables it.</td></tr>
-    <tr><td><code>settings put global/secure …</code></td><td>Tweaks (menu option 5)</td>
-        <td>Standard Android settings — original value is recorded first.</td></tr>
-    <tr><td><code>pm clear com.samsung.android.game.gos</code></td><td>Performance tweak only</td>
-        <td>Wipes GOS statistics. This is the one irreversible side effect and is
-        disclosed before you confirm.</td></tr>
-  </tbody>
-</table>
-<p>There is no root, no bootloader unlock, no partition write, no flashed file,
-no background daemon and nothing left running on the phone afterwards.</p>
+  <span class="eyebrow reveal">02 · safety &amp; restore</span>
+  <h1 class="reveal d1">Reversible —<br>but never risk-free.</h1>
+  <p class="lede reveal d2">This page is the exact contract: what runs on your
+  phone, what can never run, and how to undo every bit of it.</p>
 
-<h2 id="deny-list">The deny-list: what can never be removed</h2>
-<p>Critical packages are filtered out of every preset <em>and</em> out of manual
-<code>--only</code> requests. You cannot type your way past it:</p>
-<ul>
-  <li>Google Play Store and Play Services</li>
-  <li>SystemUI, Settings, Package installer, permission controller</li>
-  <li>One UI home launcher and Samsung keyboard</li>
-  <li>Phone/dialer, Contacts, SIM/telephony stack</li>
-  <li>IMS, VoLTE and Wi-Fi calling</li>
-  <li>Setup wizard and device provisioning</li>
-  <li>Over-the-air update components</li>
-</ul>
-<p>On top of that, the tool only ever touches packages <strong>actually installed
-on your phone</strong>: it first asks the device what exists, then filters the
-preset through that list. A package Samsung renamed in a new firmware simply
-doesn't match — worst case is leftover bloat, never breakage.</p>
+  <h2 id="what-it-runs">What the tool actually runs</h2>
+  <p>Every phone change goes through <code>adb shell</code> — the same channel a
+  power user would type by hand:</p>
+  <table>
+    <thead><tr><th>Command</th><th>When</th><th>Effect</th></tr></thead>
+    <tbody>
+      <tr><td><code>pm uninstall --user 0</code></td><td>Removing (default)</td>
+          <td>Uninstalls for your user profile only. The APK stays in <code>/system</code>, untouched.</td></tr>
+      <tr><td><code>pm disable-user --user 0</code></td><td>Fallback / <code>--disable</code></td>
+          <td>Disables the app, keeping its data.</td></tr>
+      <tr><td><code>cmd package install-existing</code></td><td>Restoring removed apps</td>
+          <td>Reinstalls the stock APK for your user.</td></tr>
+      <tr><td><code>pm enable</code></td><td>Restoring disabled apps</td><td>Re-enables them.</td></tr>
+      <tr><td><code>settings put global/secure</code></td><td>Tweaks (menu 5)</td>
+          <td>Stock Android settings — original value recorded first.</td></tr>
+      <tr><td><code>pm clear …game.gos</code></td><td>Performance tweak only</td>
+          <td><strong>The one irreversible side effect</strong> — GOS statistics are wiped. Disclosed before you confirm.</td></tr>
+    </tbody>
+  </table>
+  <p>No root, no bootloader unlock, no partition writes, nothing flashed,
+  no daemon left running afterwards.</p>
 
-<h2 id="preview">Mandatory preview, typed confirmation</h2>
-<p>There is no flag that removes apps without showing the list first. Even with
-<code>-y</code> (which skips <em>typing</em> the confirmation), the full preview is
-still printed. Confirmation is a typed word — <code>sim</code> — so an accidental
-Enter never applies anything.</p>
+  <h2 id="deny-list">The deny-list: what can never be removed</h2>
+  <p>Critical packages are filtered out of every preset <em>and</em> out of manual
+  <code>--only</code> requests. You cannot type your way past it:</p>
+  <ul class="cols2">
+    <li>Google Play Store &amp; Play Services</li>
+    <li>SystemUI, Settings, package installer</li>
+    <li>Permission controller</li>
+    <li>One UI home launcher</li>
+    <li>Samsung keyboard</li>
+    <li>Phone/dialer, Contacts, SIM stack</li>
+    <li>IMS, VoLTE, Wi-Fi calling</li>
+    <li>Setup wizard &amp; provisioning</li>
+    <li>OTA update components</li>
+  </ul>
+  <p>The tool also only touches packages <strong>actually installed on your
+  phone</strong>: it asks the device what exists first, then filters the preset
+  through that list. A package Samsung renamed in a new firmware simply doesn't
+  match — worst case is leftover bloat, never breakage.</p>
 
-<h2 id="restore">Restoring</h2>
-<h3>Everything at once</h3>
-<p>Menu option <strong>4</strong> (<em>Restore everything</em>) walks the tool's own
-state file and runs <code>install-existing</code> (for removed apps) or
-<code>pm enable</code> (for disabled ones) on each. Reboot afterwards so restored
-apps settle back in.</p>
-<h3>A single app, by hand</h3>
-<pre><code>adb shell cmd package install-existing com.facebook.katana   # if removed
-adb shell pm enable com.samsung.android.app.sbrowser            # if disabled</code></pre>
-<h3>Tweaks</h3>
-<p><code>./scamsung-debloat tweaks --reset</code> (or menu option 5 → r) restores
-every setting the tool changed to its recorded original value and re-enables GOS.
-<code>tweaks --status</code> shows exactly what would be reverted.</p>
-<h3>Where the records live</h3>
-<p><code>~/.local/share/scamsung-debloat/</code> contains <code>state.tsv</code>
-(pending restores), <code>tweaks.tsv</code> (original values) and
-<code>logs/session-*.tsv</code> (every action with timestamps). Deleting that
-folder forfeits the automated restore — the apps are still recoverable via
-<code>install-existing</code> by hand.</p>
+  <h2 id="preview">Mandatory preview, typed confirmation</h2>
+  <p>There is no flag that removes apps without showing the list first —
+  even <code>-y</code> still prints the full preview. Confirmation is a typed word,
+  <code>sim</code>, so an accidental Enter never applies anything.</p>
 
-<h2 id="honest-risks">The honest risks</h2>
-<ul>
-  <li><strong>Dependent features break.</strong> Samsung Pay plugins, watch faces
-      and Galaxy Store content depend on Samsung services. Each preset line
-      explains its consequence; the preview is where you catch this.</li>
-  <li><strong>OTA updates may reinstall apps.</strong> Re-run the preset; nothing
-      breaks meanwhile.</li>
-  <li><strong>GOS statistics are wiped</strong> by the performance tweak
-      (<code>pm clear</code>) — disclosed before confirmation, not restorable.</li>
-  <li><strong>Validated against a simulator.</strong> The 73-check test suite runs
-      against a fake adb emulating One UI 9. Your exact firmware is the final
-      preview — which is why the preview exists.</li>
-</ul>
+  <h2 id="restore">Restoring</h2>
+  <h3>Everything at once</h3>
+  <p>Menu option <strong>4</strong> walks the tool's state file and runs
+  <code>install-existing</code> (removed apps) or <code>pm enable</code> (disabled
+  ones) on each. Reboot afterwards.</p>
+  <h3>A single app, by hand</h3>
+  <div class="codeblock"><pre>adb shell cmd package install-existing com.facebook.katana   <span class="cm"># if removed</span>
+adb shell pm enable com.sec.android.app.sbrowser             <span class="cm"># if disabled</span></pre></div>
+  <h3>Tweaks</h3>
+  <p><code>./scamsung-debloat tweaks --reset</code> restores every setting to its
+  recorded original value and re-enables GOS. <code>tweaks --status</code> shows
+  exactly what would be reverted.</p>
+  <h3>Where the records live</h3>
+  <p><code>~/.local/share/scamsung-debloat/</code> — <code>state.tsv</code> (pending
+  restores), <code>tweaks.tsv</code> (original values), <code>logs/session-*.tsv</code>
+  (every action). Deleting that folder forfeits automated restore; apps are still
+  recoverable by hand via <code>install-existing</code>.</p>
+
+  <h2 id="risks">The honest risks</h2>
+  <div class="callout warn">
+    <p><strong>Dependent features break.</strong> Samsung Pay plugins, watch faces and
+    Galaxy Store content depend on Samsung services. Each preset line explains its
+    consequence; the preview is where you catch this.</p>
+  </div>
+  <div class="callout warn">
+    <p><strong>OTAs may reinstall apps.</strong> Re-run the preset after a Samsung
+    update; nothing breaks meanwhile.</p>
+  </div>
+  <div class="callout warn">
+    <p><strong>GOS statistics are wiped</strong> by the performance tweak
+    (<code>pm clear</code>). Disclosed before confirmation; not restorable.</p>
+  </div>
+  <div class="callout">
+    <p><strong>Validated against a simulator.</strong> The 73-check suite runs against
+    a fake adb emulating One UI 9 — your exact firmware is the final preview,
+    which is why the preview exists.</p>
+  </div>
 
 </article>
 </div>
 </main>
 
-<footer class="site">
+<footer>
   <div class="wrap">
-    <p>scamsung-debloat — MIT licensed, not affiliated with Samsung or Google.</p>
-    <p><a href="https://github.com/AurelioMo/scamsung-debloat">Repository</a> ·
-    <a href="https://github.com/AurelioMo/scamsung-debloat/issues">Issues</a></p>
+    <div class="cols">
+      <span class="wordmark"><b>$</b> scamsung-debloat</span>
+      <span>
+        <a href="https://github.com/AurelioMo/scamsung-debloat">repository</a> ·
+        <a href="https://github.com/AurelioMo/scamsung-debloat/issues">issues</a> ·
+        <a href="https://github.com/AurelioMo/scamsung-debloat/releases">releases</a> ·
+        <a href="https://github.com/AurelioMo/scamsung-debloat/blob/main/LICENSE">MIT license</a>
+      </span>
+    </div>
+    <p class="legal">Not affiliated with Samsung or Google. Use at your own risk.</p>
   </div>
 </footer>
 </body>

@@ -7,7 +7,8 @@
 
 # scamsung-debloat
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![GitHub release](https://img.shields.io/github/v/release/AurelioMo/scamsung-debloat)](https://github.com/AurelioMo/scamsung-debloat/releases)
+[![GitHub license](https://img.shields.io/github/license/AurelioMo/scamsung-debloat)](LICENSE)
 [![Platform](https://img.shields.io/badge/platform-macOS%20%7C%20Linux%20%7C%20Windows-blue)](#requirements)
 [![Shell: bash 3.2+](https://img.shields.io/badge/shell-bash%203.2%2B-green)](scamsung-debloat)
 
@@ -20,12 +21,31 @@ with presets based on
 [itxjobe/samsungdebloat](https://github.com/itxjobe/samsungdebloat).
 
 **No terminal skills needed: double-click the file, pick numbers from a menu.**
+The whole interface — menus, warnings, errors — follows your OS language
+(Português, English, Español; override with `SCAMSUNG_LANG=pt|en|es`).
 
-The interface speaks **your language** — the script follows the OS language
-automatically (Português, English, Español) and every flow, menu, warning and
-error message is translated. Override with `SCAMSUNG_LANG=pt|en|es` if you want.
-New languages are one file in `lang/` away; `self-test` checks that all
-translations stay in sync.
+## 60-second quickstart
+
+1. Install `adb` once: `brew install --cask android-platform-tools` (macOS) ·
+   `winget install --id Google.PlatformTools -e` (Windows) ·
+   `sudo apt install android-tools-adb` (Debian/Ubuntu).
+2. On the phone: tap **Build number** 7× → **Developer options → USB debugging** ON.
+3. [Download the ZIP](https://github.com/AurelioMo/scamsung-debloat/archive/refs/heads/main.zip)
+   or `git clone`, then double-click `scamsung-debloat` (`.cmd` on Windows).
+4. Menu: **1** diagnostics → **2** apply → `basic` → read the preview → type `sim`.
+
+Nothing changes on the phone before you type `sim`. Details below.
+
+## Why another debloat tool?
+
+[UAD](https://github.com/Universal-Debloater-Alliance/universal-android-debloater-next-generation)
+and [Canta](https://github.com/samolego/Canta) are excellent apps, and this
+project reuses their risk knowledge. scamsung-debloat exists for what's left
+over: people who don't want to install another app or keep Shizuku running, who
+want a menu in their own language, presets built for One UI 8/9 specifically
+(from [itxjobe's community-tested lists](https://github.com/itxjobe/samsungdebloat)),
+and a restore path that's one menu option instead of a factory reset. It's one
+auditable bash script — the whole safety model fits in your head.
 
 ## Contents
 
@@ -321,6 +341,14 @@ docs/auditoria-pacotes.md # package risk audit (pt-BR, historical)
 docs/index.html           # project website (GitHub Pages)
 README_PT-BR.md           # this file, em português
 ```
+
+## Contributing
+
+Issues and PRs are welcome. Most wanted: **package reports** (what a package
+does on your specific firmware — open an issue with `explain` output), new
+**interface languages** (one file in `lang/`, `self-test` validates parity), and
+preset line improvements. Run `bash tests/run.sh` before sending anything —
+73/73 is the bar.
 
 ## Credits
 
