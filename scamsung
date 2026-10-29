@@ -1,0 +1,1645 @@
+#!/usr/bin/env bash
+#
+# scamsung — tira bloatware de Galaxy sem root.
+#
+# Reescrita do debloat_samsung_android (invinciblevenom), que era .bat, parou na
+# One UI 6.1 e foi arquivado. Esta aqui roda em macOS, Linux e Windows (Git Bash),
+# funciona na One UI 8/9 e só mexe no que existe no seu aparelho:
+#   - lista pacotes do próprio aparelho e ignora o que não está lá
+#   - deny-list embutida: pacotes críticos nunca saem
+#   - se o uninstall falhar no seu firmware, tenta desativar no lugar
+#   - antes de remover qualquer coisa, mostra tudo e pede "sim"
+#   - guarda o que fez e volta atrás com `./scamsung restore`
+#   - tweaks do Tweaks.bat original, com verificação e reset exato
+#
+set -o pipefail
+
+APP_NAME="scamsung"
+APP_VERSION="1.4.0"
+
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+LISTS_DIR="$ROOT_DIR/lists"
+DATA_DIR="${SCSUNG_DATA_DIR:-$HOME/.local/share/scamsung}"
+STATE_FILE="$DATA_DIR/state.tsv"
+TWEAKS_FILE="$DATA_DIR/tweaks.tsv"
+LOG_DIR="$DATA_DIR/logs"
+
+METHOD="uninstall"
+DRY_RUN=0
+ASSUME_YES=0
+VERBOSE=0
+SERIAL="${ANDROID_SERIAL:-}"
+ONLY=""
+SKIP=""
+QUIET=0
+
+ADB=""
+SESSION_LOG=""
+WORK_DIR=""
+PKG_INSTALLED=""
+PKG_KNOWN=""
+ALL_LIST_CACHE=""
+TARGET_FILE=""
+FILTERED_FILE=""
+TARGET_LABEL=""
+
+# ---------------------------------------------------------------------------
+# cores / log
+# ---------------------------------------------------------------------------
+
+if [ -t 1 ] && [ -z "${NO_COLOR:-}" ] && [ "${TERM:-dumb}" != "dumb" ]; then
+    C_RESET="$(tput sgr0 2>/dev/null || true)"
+    C_BOLD="$(tput bold 2>/dev/null || true)"
+    C_DIM="$(tput dim 2>/dev/null || true)"
+    C_RED="$(tput setaf 1 2>/dev/null || true)"
+    C_GREEN="$(tput setaf 2 2>/dev/null || true)"
+    C_YELLOW="$(tput setaf 3 2>/dev/null || true)"
+    C_BLUE="$(tput setaf 4 2>/dev/null || true)"
+    C_CYAN="$(tput setaf 6 2>/dev/null || true)"
+else
+    C_RESET=""; C_BOLD=""; C_DIM=""; C_RED=""; C_GREEN=""
+    C_YELLOW=""; C_BLUE=""; C_CYAN=""
+fi
+
+say()  { [ "$QUIET" -eq 1 ] || printf '%s\n' "$*"; }
+ok()   { [ "$QUIET" -eq 1 ] || printf '%s%s%s\n' "$C_GREEN" "$*" "$C_RESET"; }
+warn() { [ "$QUIET" -eq 1 ] || printf '%s%s%s\n' "$C_YELLOW" "$*" "$C_RESET" >&2; }
+err()  { printf '%s%s%s\n' "$C_RED" "$*" "$C_RESET" >&2; }
+step() { [ "$QUIET" -eq 1 ] || printf '\n%s==> %s%s\n' "$C_BOLD$C_CYAN" "$*" "$C_RESET"; }
+dim()  { [ "$QUIET" -eq 1 ] || printf '%s%s%s\n' "$C_DIM" "$*" "$C_RESET"; }
+
+die() { err "erro: $*"; exit 1; }
+
+cleanup() {
+    [ -n "$WORK_DIR" ] && [ -d "$WORK_DIR" ] && rm -rf "$WORK_DIR"
+}
+trap cleanup EXIT INT TERM
+
+init_work_dir() {
+    WORK_DIR="$(mktemp -d "${TMPDIR:-/tmp}/scamsung.XXXXXX")" \
+        || die "não consegui criar diretório temporário"
+}
+
+work_file() {
+    # uso: pf="$(work_file installed)"  (o caminho é estável, não cria lixo)
+    printf '%s/%s' "$WORK_DIR" "$1"
+}
+
+# ---------------------------------------------------------------------------
+# ajuda
+# ---------------------------------------------------------------------------
+
+usage() {
+    cat <<EOF
+${C_BOLD}$APP_NAME $APP_VERSION${C_RESET} — tira bloatware de Galaxy sem root
+
+USO
+  ./scamsung                    menu interativo
+  ./scamsung doctor             confere adb, aparelho e versão do Android/One UI
+  ./scamsung list               mostra os presets
+  ./scamsung apply <preset>     mostra tudo que vai sair e aplica se você confirmar
+  ./scamsung explain <pacote>   o que é o pacote, em quais presets ele está
+  ./scamsung scan [termo]       pacotes instalados que contêm o termo
+  ./scamsung status             o que você já removeu por aqui
+  ./scamsung restore            volta tudo que este script removeu
+  ./scamsung tweaks             ajustes leves de sistema
+  ./scamsung tweaks --performance   modo agressivo: GOS, RAM Plus, zram, térmico
+  ./scamsung tweaks --status    o que os tweaks mudaram e o valor original
+  ./scamsung tweaks --reset     desfaz só o que este script mudou
+  ./scamsung tweaks --ram-plus off|on
+  ./scamsung apply --only com.facebook.katana
+  ./scamsung wireless           pareia por Wi-Fi em vez de cabo
+  ./scamsung self-test          valida os presets (não precisa de aparelho)
+
+OPÇÕES
+  -y, --yes            pula a perguntinha (a prévia aparece de qualquer jeito)
+      --disable        desativa em vez de desinstalar — mantém os dados do app
+      --skip a,b       pula esses pacotes
+      --serial SERIAL  qual aparelho usar quando tem mais de um
+  -v, --verbose        mostra também o que já estava fora
+  -q, --quiet          só erros
+  -h, --help           esta ajuda
+
+AMBIENTE
+  ANDROID_SERIAL       mesma coisa que --serial
+  SCSUNG_DATA_DIR      onde ficam estado e logs (padrão: ~/.local/share/scamsung)
+  NO_COLOR=1           sem cores
+EOF
+}
+
+# ---------------------------------------------------------------------------
+# adb / aparelho
+# ---------------------------------------------------------------------------
+
+host_os() {
+    case "$(uname -s 2>/dev/null)" in
+        Darwin) printf 'macOS' ;;
+        Linux)  printf 'Linux' ;;
+        MINGW*|MSYS*|CYGWIN*) printf 'Windows (Git Bash)' ;;
+        *)      printf 'desconhecido' ;;
+    esac
+}
+
+install_hint() {
+    case "$(uname -s 2>/dev/null)" in
+        Darwin)
+            say "  brew install --cask android-platform-tools"
+            ;;
+        Linux)
+            say "  Debian/Ubuntu : sudo apt install android-tools-adb android-tools-fastboot"
+            say "  Fedora        : sudo dnf install android-tools"
+            say "  Arch          : sudo pacman -S android-tools"
+            ;;
+        MINGW*|MSYS*|CYGWIN*)
+            say "  winget install --id Google.PlatformTools -e"
+            say "  (ou baixe platform-tools e adicione a pasta ao PATH)"
+            ;;
+        *)
+            say "  https://developer.android.com/tools/releases/platform-tools"
+            ;;
+    esac
+}
+
+find_adb() {
+    local candidate
+    if command -v adb >/dev/null 2>&1; then
+        ADB="$(command -v adb)"
+        return 0
+    fi
+    for candidate in \
+        /opt/homebrew/bin/adb \
+        /usr/local/bin/adb \
+        /usr/bin/adb \
+        /snap/bin/adb \
+        /opt/android-sdk/platform-tools/adb \
+        "$HOME/Library/Android/sdk/platform-tools/adb" \
+        "$HOME/Android/Sdk/platform-tools/adb" \
+        "$HOME/Android/sdk/platform-tools/adb" \
+        "${LOCALAPPDATA:-/nonexistent}/Android/Sdk/platform-tools/adb.exe" \
+        "${LOCALAPPDATA:-/nonexistent}/Android/Sdk/platform-tools/adb" \
+        "${USERPROFILE:-/nonexistent}/AppData/Local/Android/Sdk/platform-tools/adb.exe"
+    do
+        if [ -x "$candidate" ]; then
+            ADB="$candidate"
+            return 0
+        fi
+    done
+    return 1
+}
+
+require_adb() {
+    if ! find_adb; then
+        err "adb não encontrado ($(host_os))."
+        say ""
+        say "Instale o platform-tools:"
+        install_hint
+        say ""
+        say "Ou baixe em: https://developer.android.com/tools/releases/platform-tools"
+        exit 1
+    fi
+}
+
+adb_run() {
+    if [ -n "$SERIAL" ]; then
+        "$ADB" -s "$SERIAL" "$@"
+    else
+        "$ADB" "$@"
+    fi
+}
+
+# saída de shell do aparelho, sem CR
+sh_run() {
+    adb_run shell "$@" 2>&1 | tr -d '\r'
+}
+
+getprop() {
+    sh_run getprop "$1" | head -n 1
+}
+
+select_device() {
+    local out state serial count
+    # tr -d '\r': no Windows (Git Bash) o adb.exe responde com CRLF
+    out="$("$ADB" devices 2>/dev/null | tr -d '\r' || true)"
+
+    if printf '%s\n' "$out" | grep -q '^adb'; then
+        # linhas de daemon ("* daemon started successfully") não contam
+        :
+    fi
+
+    count="$(printf '%s\n' "$out" | awk 'NR>1 && NF==2 && $2!="" {c++} END {print c+0}')"
+
+    if [ "$count" -eq 0 ]; then
+        err "nenhum aparelho detectado pelo adb."
+        say ""
+        say "Checklist no celular:"
+        say "  1. Configurações > Sobre o telefone > Informações do software"
+        say "  2. Toque 7x em 'Número da versão' para habilitar Opções do desenvolvedor"
+        say "  3. Configurações > Opções do desenvolvedor > Depuração USB: ligada"
+        say "  4. Conecte o cabo e aceite 'Permitir depuração USB?' no celular"
+        say "  5. No Mac, se aparecer o Android File Transfer, pode fechar"
+        say ""
+        say "Sem cabo? Rode: ./scamsung wireless"
+        exit 1
+    fi
+
+    if [ -n "$SERIAL" ]; then
+        state="$(printf '%s\n' "$out" | awk -v s="$SERIAL" 'NR>1 && $1==s {print $2}' | head -n 1)"
+        [ -z "$state" ] && die "aparelho '$SERIAL' não está conectado."
+        check_device_state "$SERIAL" "$state"
+        return 0
+    fi
+
+    if [ "$count" -gt 1 ]; then
+        err "há $count aparelhos conectados. Escolha um com --serial:"
+        printf '%s\n' "$out" | awk 'NR>1 && NF==2 {printf "  %s (%s)\n", $1, $2}'
+        exit 1
+    fi
+
+    serial="$(printf '%s\n' "$out" | awk 'NR>1 && NF==2 {print $1; exit}')"
+    state="$(printf '%s\n' "$out" | awk 'NR>1 && NF==2 {print $2; exit}')"
+    SERIAL="$serial"
+    check_device_state "$SERIAL" "$state"
+}
+
+check_device_state() {
+    local serial="$1" state="$2"
+    case "$state" in
+        device) ;;
+        unauthorized)
+            err "aparelho $serial está 'unauthorized'."
+            say "Desbloqueie o celular e aceite o diálogo 'Permitir depuração USB?'."
+            say "Se não aparecer: Opções do desenvolvedor > Revogar autorizações USB e reconecte."
+            exit 1
+            ;;
+        offline)
+            err "aparelho $serial está 'offline'."
+            say "Reconecte o cabo, troque a porta USB ou rode: adb kill-server && adb devices"
+            exit 1
+            ;;
+        *)
+            err "aparelho $serial em estado inesperado: $state"
+            exit 1
+            ;;
+    esac
+}
+
+load_device_info() {
+    ANDROID_VER="$(getprop ro.build.version.release)"
+    ONEUI_RAW="$(getprop ro.build.version.oneui)"
+    SEM_RAW="$(getprop ro.build.version.sem)"
+    MODEL="$(getprop ro.product.model)"
+    DEVICE_CODE="$(getprop ro.product.device)"
+    PDA="$(getprop ro.build.PDA)"
+    [ -z "$MODEL" ] && MODEL="desconhecido"
+    [ -z "$ANDROID_VER" ] && ANDROID_VER="desconhecido"
+
+    ONEUI_LABEL=""
+    ONEUI_MAJOR=0
+    case "$ONEUI_RAW" in
+        ''|*[!0-9]*) ;;
+        *)
+            ONEUI_MAJOR=$((ONEUI_RAW / 10000))
+            ONEUI_MINOR=$(((ONEUI_RAW % 10000) / 100))
+            ONEUI_LABEL="$ONEUI_MAJOR.$ONEUI_MINOR"
+            ;;
+    esac
+    if [ -z "$ONEUI_LABEL" ]; then
+        case "$SEM_RAW" in
+            ''|*[!0-9]*) ONEUI_LABEL="desconhecida" ;;
+            *)
+                ONEUI_LABEL="sem=$SEM_RAW"
+                ;;
+        esac
+    fi
+}
+
+print_device_header() {
+    printf '%s%s%s\n' "$C_BOLD" "$MODEL ($DEVICE_CODE)" "$C_RESET"
+    printf '  Android %s | One UI %s\n' "$ANDROID_VER" "$ONEUI_LABEL"
+    [ -n "$PDA" ] && printf '  build %s\n' "$PDA"
+    printf '  serial %s\n' "$SERIAL"
+
+    if [ "$ONEUI_MAJOR" -gt 9 ] 2>/dev/null; then
+        warn "  One UI $ONEUI_LABEL ainda não foi validada neste script."
+        warn "  O modo seguro continua valendo: só pacotes instalados entram, e a deny-list é aplicada."
+    fi
+}
+
+load_packages() {
+    step "Lendo os pacotes do aparelho"
+    PKG_INSTALLED="$(work_file installed.txt)"
+    PKG_KNOWN="$(work_file known.txt)"
+
+    sh_run pm list packages --user 0 \
+        | sed -n 's/^package://p' \
+        | sort -u > "$PKG_INSTALLED"
+
+    sh_run pm list packages -u --user 0 \
+        | sed -n 's/^package://p' \
+        | sort -u > "$PKG_KNOWN"
+
+    if [ ! -s "$PKG_KNOWN" ]; then
+        err "não consegui listar pacotes. O aparelho está desbloqueado e autorizado?"
+        exit 1
+    fi
+
+    dim "  $(wc -l < "$PKG_INSTALLED" | tr -d ' ') instalados agora / $(wc -l < "$PKG_KNOWN" | tr -d ' ') que o aparelho conhece"
+}
+
+is_installed() { grep -Fxq "$1" "$PKG_INSTALLED" 2>/dev/null; }
+is_known()     { grep -Fxq "$1" "$PKG_KNOWN" 2>/dev/null; }
+
+# ---------------------------------------------------------------------------
+# política de segurança
+# ---------------------------------------------------------------------------
+
+# Pacotes que este script nunca toca, mesmo que apareçam numa lista.
+is_denied() {
+    case "$1" in
+        android) return 0 ;;
+
+        # Android / Google core
+        com.google.android.gms|com.google.android.gms.*) return 0 ;;
+        com.google.android.gsf|com.google.android.gsf.*) return 0 ;;
+        com.android.vending|com.android.vending.*) return 0 ;;
+        com.android.systemui|com.android.systemui.*) return 0 ;;
+        com.android.settings|com.android.settings.*) return 0 ;;
+        com.android.shell|com.android.shell.*) return 0 ;;
+        com.android.permissioncontroller|com.android.permissioncontroller.*) return 0 ;;
+        com.google.android.webview|com.android.webview) return 0 ;;
+        com.android.phone|com.android.phone.*) return 0 ;;
+        com.android.server.telecom|com.android.server.telecom.*) return 0 ;;
+        com.android.providers.telephony|com.android.providers.telephony.*) return 0 ;;
+        com.android.providers.contacts|com.android.providers.contacts.*) return 0 ;;
+        com.android.providers.media|com.android.providers.media.*) return 0 ;;
+        com.android.providers.downloads|com.android.providers.downloads.*) return 0 ;;
+        com.android.documentsui|com.android.documentsui.*) return 0 ;;
+        com.android.launcher3|com.android.launcher3.*) return 0 ;;
+        com.android.inputmethod.latin) return 0 ;;
+
+        # Samsung core / conectividade / boot
+        com.samsung.android.SettingsReceiver) return 0 ;;
+        com.samsung.android.incallui) return 0 ;;
+        com.samsung.android.dialer) return 0 ;;
+        com.samsung.android.communicationservice) return 0 ;;
+        com.samsung.android.networkstack|com.samsung.android.networkstack.*) return 0 ;;
+        com.samsung.android.wifi|com.samsung.android.wifi.*) return 0 ;;
+        com.samsung.android.ConnectivityOverlay) return 0 ;;
+        com.samsung.android.ConnectivityUxOverlay) return 0 ;;
+        com.samsung.android.timezone|com.samsung.android.timezone.*) return 0 ;;
+        com.samsung.networkui) return 0 ;;
+        com.samsung.android.mtp) return 0 ;;
+        com.samsung.android.storage.watchstoragemanager) return 0 ;;
+        com.samsung.android.app.soundpicker) return 0 ;;
+        com.samsung.android.applock) return 0 ;;
+        com.samsung.android.clipboarduiservice) return 0 ;;
+        com.sec.android.app.simsettingmgr) return 0 ;;
+        com.samsung.android.honeyboard) return 0 ;;            # teclado Samsung
+        com.samsung.android.app.launcher|com.sec.android.app.launcher) return 0 ;;  # One UI Home
+        com.samsung.android.kgclient) return 0 ;;             # remove = overlay de bloqueio do aparelho
+        com.samsung.android.sm.policy) return 0 ;;
+        com.samsung.android.app.telephonyui) return 0 ;;
+        com.samsung.android.ims|com.samsung.android.ims.*) return 0 ;;
+        com.sec.ims|com.sec.ims.*) return 0 ;;
+        com.sec.epdg|com.sec.epdg.*) return 0 ;;
+        com.sec.unifiedwfc) return 0 ;;                        # Wi-Fi calling
+        com.samsung.android.app.aodservice) return 0 ;;        # AOD + relógio da lockscreen
+
+        # UAD-ng classifica como "Unsafe": remover quebra Settings/tela
+        com.android.bips) return 0 ;;                          # print service: Settings crasha
+        com.android.internal.display.cutout.emulation.*) return 0 ;;  # overlays do recorte de tela
+    esac
+    return 1
+}
+
+# ---------------------------------------------------------------------------
+# listas
+# ---------------------------------------------------------------------------
+
+strip_line() {
+    # remove comentário e espaços em volta
+    printf '%s' "$1" | sed 's/#.*//; s/^[[:space:]]*//; s/[[:space:]]*$//'
+}
+
+list_presets() {
+    local f
+    for f in "$LISTS_DIR"/*.txt; do
+        [ -f "$f" ] || continue
+        basename "$f" .txt
+    done
+}
+
+preset_path() {
+    printf '%s/%s.txt' "$LISTS_DIR" "$1"
+}
+
+# Lê pacotes de um preset e imprime um por linha.
+read_preset() {
+    local path="$1" line pkg
+    [ -f "$path" ] || return 1
+    while IFS= read -r line || [ -n "$line" ]; do
+        pkg="$(strip_line "$line")"
+        [ -n "$pkg" ] && printf '%s\n' "$pkg"
+    done < "$path"
+}
+
+# Monta TARGET_FILE a partir de --only ou do preset.
+build_target_list() {
+    local preset="$1" path out
+    out="$(work_file target.txt)"
+    : > "$out"
+
+    if [ -n "$ONLY" ]; then
+        printf '%s\n' "$ONLY" | tr ',' '\n' | sed 's/^[[:space:]]*//; s/[[:space:]]*$//' \
+            | sed '/^$/d' > "$out"
+        TARGET_LABEL="custom (--only)"
+        TARGET_FILE="$out"
+        return 0
+    fi
+
+    path="$(preset_path "$preset")"
+    [ -f "$path" ] || return 1
+    read_preset "$path" > "$out" || true
+    TARGET_LABEL="preset $preset"
+    TARGET_FILE="$out"
+    return 0
+}
+
+# Aplica --skip e devolve o caminho final em FILTERED_FILE.
+filter_skip() {
+    local out="$1" skipfile filtered
+    filtered="$(work_file filtered.txt)"
+    if [ -z "$SKIP" ]; then
+        cp "$out" "$filtered"
+        FILTERED_FILE="$filtered"
+        return 0
+    fi
+    skipfile="$(work_file skip.txt)"
+    printf '%s\n' "$SKIP" | tr ',' '\n' | sed 's/^[[:space:]]*//; s/[[:space:]]*$//' \
+        | sed '/^$/d' | sort -u > "$skipfile"
+    if [ -s "$out" ]; then
+        grep -F -x -v -f "$skipfile" "$out" > "$filtered" || true
+    else
+        : > "$filtered"
+    fi
+    FILTERED_FILE="$filtered"
+    return 0
+}
+
+# ---------------------------------------------------------------------------
+# ações
+# ---------------------------------------------------------------------------
+
+ensure_session_log() {
+    [ -n "$SESSION_LOG" ] && return 0
+    mkdir -p "$LOG_DIR" || die "não consegui criar $LOG_DIR"
+    SESSION_LOG="$LOG_DIR/session-$(date +%Y%m%d-%H%M%S).tsv"
+    printf 'epoch\taction\tpackage\tcontext\n' >> "$SESSION_LOG"
+}
+
+record_action() {
+    local pkg="$1" action="$2" context="$3" tmp
+    ensure_session_log
+    printf '%s\t%s\t%s\t%s\n' "$(date +%s)" "$action" "$pkg" "$context" >> "$SESSION_LOG"
+
+    mkdir -p "$DATA_DIR" || return 0
+    tmp="${STATE_FILE}.tmp.$$"
+    if [ -f "$STATE_FILE" ]; then
+        awk -F'\t' -v p="$pkg" '$2 != p' "$STATE_FILE" > "$tmp" 2>/dev/null || true
+    else
+        : > "$tmp"
+    fi
+    printf '%s\t%s\n' "$action" "$pkg" >> "$tmp"
+    mv "$tmp" "$STATE_FILE"
+}
+
+apply_one() {
+    local pkg="$1" context="$2" out action label
+    if is_denied "$pkg"; then
+        warn "  ! $pkg  (bloqueado pela política de segurança)"
+        BLOCKED=$((BLOCKED + 1))
+        return 0
+    fi
+    case "$pkg" in
+        *[!A-Za-z0-9._]*|'') err "  x nome inválido: $pkg"; FAILED=$((FAILED + 1)); return 0 ;;
+    esac
+    if ! is_known "$pkg"; then
+        MISSING=$((MISSING + 1))
+        [ "$VERBOSE" -eq 1 ] && dim "  - $pkg  (não existe neste aparelho)"
+        return 0
+    fi
+    if ! is_installed "$pkg"; then
+        ALREADY=$((ALREADY + 1))
+        [ "$VERBOSE" -eq 1 ] && dim "  . $pkg  (já removido)"
+        return 0
+    fi
+    label="$(package_label "$pkg")"
+    if [ "$DRY_RUN" -eq 1 ]; then
+        print_pkg "~" "$pkg" "$label"
+        WILL=$((WILL + 1))
+        return 0
+    fi
+
+    if [ "$METHOD" = "disable" ]; then
+        out="$(sh_run pm disable-user --user 0 "$pkg")"
+        case "$out" in
+            *disabled*) action="DISABLED" ;;
+            *) action="FAILED" ;;
+        esac
+    else
+        out="$(sh_run pm uninstall --user 0 "$pkg")"
+        case "$out" in
+            *Success*)
+                action="REMOVED"
+                ;;
+            *"not installed for"*)
+                action="SKIPPED"
+                ;;
+            *)
+                # firmware novo pode bloquear uninstall de app de sistema:
+                # cai para disable, que é reversível e mantém os dados.
+                out="$(sh_run pm disable-user --user 0 "$pkg")"
+                case "$out" in
+                    *disabled*) action="DISABLED" ;;
+                    *) action="FAILED" ;;
+                esac
+                ;;
+        esac
+    fi
+
+    case "$action" in
+        REMOVED)
+            ok "  + $pkg${label:+  — $label}"
+            REMOVED=$((REMOVED + 1))
+            record_action "$pkg" "REMOVED" "$context"
+            ;;
+        DISABLED)
+            ok "  + $pkg  (desativado)${label:+  — $label}"
+            DISABLED=$((DISABLED + 1))
+            record_action "$pkg" "DISABLED" "$context"
+            ;;
+        SKIPPED)
+            ALREADY=$((ALREADY + 1))
+            [ "$VERBOSE" -eq 1 ] && dim "  . $pkg  (já removido)"
+            ;;
+        *)
+            err "  x $pkg  ($out)"
+            FAILED=$((FAILED + 1))
+            ;;
+    esac
+}
+
+cmd_apply() {
+    local preset="${1:-}" pkg total
+    if [ -z "$preset" ] && [ -z "$ONLY" ]; then
+        err "informe um preset ou --only."
+        say "Presets: $(list_presets | tr '\n' ' ')"
+        exit 1
+    fi
+    if [ -n "$preset" ] && [ -z "$ONLY" ] && [ ! -f "$(preset_path "$preset")" ]; then
+        err "preset '$preset' não existe."
+        say "Presets: $(list_presets | tr '\n' ' ')"
+        exit 1
+    fi
+
+    require_adb
+    select_device
+    load_device_info
+    say ""
+    print_device_header
+    say ""
+
+    build_target_list "$preset" || exit 1
+    filter_skip "$TARGET_FILE"
+    sort -u "$FILTERED_FILE" -o "$FILTERED_FILE" 2>/dev/null || true
+    total="$(wc -l < "$FILTERED_FILE" | tr -d ' ')"
+
+    if [ "$total" -eq 0 ]; then
+        warn "lista vazia: nada a fazer."
+        exit 0
+    fi
+
+    load_packages
+
+    REMOVED=0; DISABLED=0; ALREADY=0; MISSING=0; FAILED=0; BLOCKED=0; WILL=0
+
+    step "Prévia: $TARGET_LABEL"
+    say "  método: $([ "$METHOD" = disable ] && echo 'desativar' || echo 'desinstalar para o usuário 0')"
+    say "  $total pacotes na lista"
+    say ""
+
+    # prévia é obrigatória: primeiro o que iria, depois confirma e só então aplica
+    DRY_RUN=1
+    while IFS= read -r pkg; do
+        [ -z "$pkg" ] && continue
+        apply_one "$pkg" "$TARGET_LABEL"
+    done < "$FILTERED_FILE"
+    DRY_RUN=0
+
+    say ""
+    say "  remover:              $WILL"
+    say "  já removidos antes:   $ALREADY"
+    say "  ausentes no aparelho: $MISSING (ignorados)"
+    [ "$BLOCKED" -gt 0 ] && warn "  bloqueados pela política: $BLOCKED"
+
+    if [ "$WILL" -eq 0 ]; then
+        say ""
+        say "nada a fazer."
+        exit 0
+    fi
+
+    if [ "$ASSUME_YES" -ne 1 ]; then
+        say ""
+        say "Isso remove apps do seu usuário. Dá para reverter com: ./scamsung restore"
+        printf 'Digite %ssim%s para continuar: ' "$C_BOLD" "$C_RESET"
+        read -r answer
+        case "$answer" in
+            sim|SIM|Sim|s|S|y|Y|yes|YES) ;;
+            *) warn "cancelado."; exit 0 ;;
+        esac
+    fi
+
+    REMOVED=0; DISABLED=0; ALREADY=0; MISSING=0; FAILED=0; BLOCKED=0
+    step "Aplicando ($TARGET_LABEL)"
+    while IFS= read -r pkg; do
+        [ -z "$pkg" ] && continue
+        apply_one "$pkg" "$TARGET_LABEL"
+    done < "$FILTERED_FILE"
+
+    say ""
+    step "Resumo"
+    say "  removidos:             $REMOVED"
+    say "  desativados:           $DISABLED"
+    say "  já removidos antes:    $ALREADY"
+    say "  ausentes no aparelho:  $MISSING"
+    [ "$BLOCKED" -gt 0 ] && warn "  bloqueados pela política: $BLOCKED"
+    [ "$FAILED" -gt 0 ] && err "  falharam: $FAILED"
+
+    if [ $((REMOVED + DISABLED)) -gt 0 ]; then
+        say ""
+        say "Log: $SESSION_LOG"
+        say "Reverter: ./scamsung restore"
+        say "Recomendado reiniciar o aparelho depois de aplicar."
+    fi
+}
+
+cmd_restore() {
+    require_adb
+    select_device
+    load_device_info
+    say ""
+    print_device_header
+
+    if [ ! -s "$STATE_FILE" ]; then
+        ok "nada para restaurar (estado vazio em $STATE_FILE)."
+        return 0
+    fi
+
+    local total action pkg out done_count failed_count
+    total="$(wc -l < "$STATE_FILE" | tr -d ' ')"
+    step "Restaurando $total pacote(s)"
+
+    if [ "$ASSUME_YES" -ne 1 ] && [ "$DRY_RUN" -ne 1 ]; then
+        printf 'Digite %ssim%s para restaurar: ' "$C_BOLD" "$C_RESET"
+        read -r answer
+        case "$answer" in
+            sim|SIM|Sim|s|S|y|Y|yes|YES) ;;
+            *) warn "cancelado."; exit 0 ;;
+        esac
+    fi
+
+    tmp="${STATE_FILE}.restore.$$"
+    : > "$tmp"
+    done_count=0
+    failed_count=0
+
+    while IFS= read -r line || [ -n "$line" ]; do
+        [ -z "$line" ] && continue
+        action="$(printf '%s' "$line" | cut -f1)"
+        pkg="$(printf '%s' "$line" | cut -f2)"
+        [ -z "$pkg" ] && continue
+
+        case "$action" in
+            REMOVED)
+                if [ "$DRY_RUN" -eq 1 ]; then
+                    printf '  ~ reinstalar %s\n' "$pkg"
+                    done_count=$((done_count + 1))
+                    continue
+                fi
+                out="$(sh_run cmd package install-existing --user 0 "$pkg")"
+                case "$out" in
+                    *installed*|*Success*)
+                        ok "  + $pkg"
+                        done_count=$((done_count + 1))
+                        ;;
+                    *)
+                        err "  x $pkg ($out)"
+                        failed_count=$((failed_count + 1))
+                        printf '%s\n' "$line" >> "$tmp"
+                        ;;
+                esac
+                ;;
+            DISABLED)
+                if [ "$DRY_RUN" -eq 1 ]; then
+                    printf '  ~ reativar %s\n' "$pkg"
+                    done_count=$((done_count + 1))
+                    continue
+                fi
+                out="$(sh_run pm enable "$pkg")"
+                case "$out" in
+                    *enabled*|*Success*)
+                        ok "  + $pkg"
+                        done_count=$((done_count + 1))
+                        ;;
+                    *)
+                        err "  x $pkg ($out)"
+                        failed_count=$((failed_count + 1))
+                        printf '%s\n' "$line" >> "$tmp"
+                        ;;
+                esac
+                ;;
+            *)
+                printf '%s\n' "$line" >> "$tmp"
+                ;;
+        esac
+    done < "$STATE_FILE"
+
+    if [ "$DRY_RUN" -ne 1 ]; then
+        mv "$tmp" "$STATE_FILE"
+        say ""
+        say "  restaurados: $done_count"
+        [ "$failed_count" -gt 0 ] && err "  falharam: $failed_count"
+        say "Reinicie o aparelho para normalizar os apps restaurados."
+    else
+        rm -f "$tmp"
+    fi
+}
+
+cmd_status() {
+    require_adb
+    select_device
+    load_device_info
+    say ""
+    print_device_header
+    say ""
+
+    load_packages
+    say "  pacotes instalados (user 0): $(wc -l < "$PKG_INSTALLED" | tr -d ' ')"
+
+    if [ -s "$STATE_FILE" ]; then
+        say ""
+        say "  ${C_YELLOW}pendentes de restore:${C_RESET} $(grep -c . "$STATE_FILE" | tr -d ' ')"
+        awk -F'\t' '{printf "    %-9s %s\n", $1, $2}' "$STATE_FILE"
+        say ""
+        say "  ./scamsung restore   para voltar tudo"
+    else
+        ok "  nenhum pacote removido por este script."
+    fi
+
+    if [ -d "$LOG_DIR" ]; then
+        say ""
+        dim "  logs: $LOG_DIR"
+    fi
+}
+
+cmd_doctor() {
+    say ""
+    printf '%s%s %s%s\n' "$C_BOLD" "$APP_NAME" "$APP_VERSION" "$C_RESET"
+
+    step "sistema"
+    say "  host: $(host_os) | bash: ${BASH_VERSION:-desconhecido}"
+    say "  listas: $LISTS_DIR"
+    say "  estado: $DATA_DIR"
+
+    step "adb"
+    if find_adb; then
+        ok "  encontrado: $ADB"
+        say "  $("$ADB" version 2>/dev/null | tr -d '\r' | head -n 1)"
+    else
+        err "  não encontrado. Instale o platform-tools:"
+        install_hint
+        exit 1
+    fi
+
+    step "aparelho"
+    select_device
+    load_device_info
+    ok "  conectado: $MODEL ($DEVICE_CODE), serial $SERIAL"
+    say "  Android $ANDROID_VER | One UI $ONEUI_LABEL"
+
+    step "shell / package manager"
+    if sh_run true | grep -q .; then
+        warn "  shell respondeu com saída inesperada; seguindo mesmo assim."
+    else
+        ok "  adb shell ok"
+    fi
+
+    if sh_run pm list packages --user 0 | grep -q '^package:'; then
+        ok "  pm list packages ok"
+    else
+        err "  pm list packages falhou"
+        exit 1
+    fi
+
+    case "$(sh_run cmd package help 2>&1)" in
+        *install-existing*) ok "  install-existing disponível (restore ok)" ;;
+        *) warn "  install-existing não confirmado; restore pode falhar em pacotes removidos" ;;
+    esac
+
+    step "permissões/estado"
+    say "  estado local: $STATE_FILE"
+    if [ -s "$STATE_FILE" ]; then
+        warn "  há $(grep -c . "$STATE_FILE" | tr -d ' ') pacote(s) pendentes de restore"
+    else
+        ok "  estado limpo"
+    fi
+    ok "pronto."
+}
+
+cmd_list() {
+    local f count desc
+    step "Presets"
+    for f in "$LISTS_DIR"/*.txt; do
+        [ -f "$f" ] || continue
+        count="$(read_preset "$f" | grep -c . || true)"
+        desc="$(sed -n '1s/^# *//p' "$f")"
+        printf '  %-6s %3s pacotes  %s\n' "$(basename "$f" .txt)" "$count" "$desc"
+    done
+    say ""
+    dim "  ./scamsung apply <preset>  |  ./scamsung explain <pacote>"
+}
+
+cmd_scan() {
+    local term="${1:-}"
+    require_adb
+    select_device
+    load_packages
+
+    say ""
+    if [ -z "$term" ]; then
+        say "Pacotes Samsung/Google/terceiros instalados:"
+        term=""
+    else
+        say "Pacotes instalados que contêm '$term':"
+    fi
+
+    local pkg mark
+    while IFS= read -r pkg; do
+        case "$pkg" in
+            com.samsung*|com.sec.*|com.osp.*|com.google.*|com.android.*|com.microsoft.*|com.facebook.*|com.netflix.*) ;;
+            *) continue ;;
+        esac
+        if [ -n "$term" ]; then
+            printf '%s' "$pkg" | grep -qi -- "$term" || continue
+        fi
+        mark=""
+        if is_denied "$pkg"; then
+            mark="${C_RED}[protegido]${C_RESET}"
+        elif list_contains "$pkg"; then
+            mark="${C_GREEN}[na lista]${C_RESET}"
+        fi
+        printf '  %-55s %s\n' "$pkg" "$mark"
+    done < "$PKG_INSTALLED"
+    say ""
+    dim "  [protegido] = a deny-list nunca deixa remover"
+    dim "  [na lista]  = aparece em algum preset do script"
+}
+
+cmd_explain() {
+    local pkg="${1:-}" f preset line label="" found=0 presets="" action o canon
+    if [ -z "$pkg" ]; then
+        err "uso: ./scamsung explain <pacote>"
+        say "  exemplo: ./scamsung explain com.facebook.katana"
+        return 1
+    fi
+    pkg="$(printf '%s' "$pkg" | sed 's/^package://')"
+
+    say ""
+    printf '%s%s%s\n' "$C_BOLD" "$pkg" "$C_RESET"
+
+    for f in "$LISTS_DIR"/*.txt; do
+        [ -f "$f" ] || continue
+        line="$(grep -E "^[[:space:]]*$pkg([[:space:]]|$)" "$f" | head -n 1)"
+        [ -z "$line" ] && continue
+        found=1
+        preset="$(basename "$f" .txt)"
+        presets="$presets $preset"
+        if [ -z "$label" ]; then
+            label="$(printf '%s' "$line" | sed -n 's/^[^#]*#[[:space:]]*//p')"
+        fi
+    done
+
+    [ -n "$label" ] && printf '  o que é : %s\n' "$label"
+    if [ "$found" -eq 1 ]; then
+        canon=""
+        for o in basic light heavy; do
+            case " $presets " in
+                *" $o "*) canon="$canon $o" ;;
+            esac
+        done
+        printf '  presets : %s\n' "$(printf '%s' "$canon" | sed 's/^ *//')"
+    else
+        dim "  não está em nenhum preset deste repositório."
+    fi
+
+    if is_denied "$pkg"; then
+        printf '  deny-list : %sSIM — nunca é removido, nem com --only%s\n' "$C_RED" "$C_RESET"
+    else
+        printf '  deny-list : não\n'
+    fi
+
+    if [ -f "$STATE_FILE" ]; then
+        action="$(awk -F'\t' -v p="$pkg" '$2==p{print $1; exit}' "$STATE_FILE" 2>/dev/null)"
+        if [ -n "$action" ]; then
+            printf '  estado    : %s (desfazer: ./scamsung restore)\n' "$action"
+        fi
+    fi
+
+    if [ "$found" -eq 0 ] && ! is_denied "$pkg"; then
+        say ""
+        dim "  Não listado = o script não toca nele. Se for bloat do seu firmware,"
+        dim "  adicione ao preset em lists/ e rode ./scamsung self-test."
+    fi
+    say ""
+    return 0
+}
+
+list_contains() {
+    local pkg="$1" f
+    [ -z "$ALL_LIST_CACHE" ] && ALL_LIST_CACHE="$(work_file all-lists.txt)"
+    if [ ! -s "$ALL_LIST_CACHE" ]; then
+        for f in "$LISTS_DIR"/*.txt; do
+            [ -f "$f" ] || continue
+            read_preset "$f"
+        done | sort -u > "$ALL_LIST_CACHE"
+    fi
+    grep -Fxq "$pkg" "$ALL_LIST_CACHE"
+}
+
+# Comentário pt-BR que acompanha o pacote nos presets (vazio se não houver).
+package_label() {
+    local pkg="$1" labels
+    labels="$(work_file labels.tsv)"
+    if [ ! -s "$labels" ]; then
+        awk '
+            /^[[:space:]]*#/ { next }
+            /^[[:space:]]*$/ { next }
+            {
+                name = $0
+                sub(/#.*/, "", name)
+                sub(/^[[:space:]]+/, "", name)
+                sub(/[[:space:]]+$/, "", name)
+                if (name == "") next
+                label = $0
+                if (label !~ /#/) next
+                sub(/^[^#]*#[[:space:]]*/, "", label)
+                sub(/[[:space:]]+$/, "", label)
+                if (label == "") next
+                if (name in seen) next
+                seen[name] = 1
+                printf "%s\t%s\n", name, label
+            }
+        ' "$LISTS_DIR"/*.txt > "$labels" 2>/dev/null
+    fi
+    awk -F'\t' -v p="$pkg" '$1 == p { print $2; exit }' "$labels" 2>/dev/null
+}
+
+# Imprime "  <marca> <pacote>  — <rótulo>" (rótulo é opcional).
+print_pkg() {
+    if [ -n "$3" ]; then
+        printf '  %s %s  — %s\n' "$1" "$2" "$3"
+    else
+        printf '  %s %s\n' "$1" "$2"
+    fi
+}
+
+# ---------------------------------------------------------------------------
+# tweaks (equivalente ao Tweaks.bat, mas com verificação e reset exato)
+# ---------------------------------------------------------------------------
+
+# Devolve o valor atual de um global setting. Vazio = chave inexistente/null.
+tweak_get() {
+    local v
+    v="$(sh_run settings get global "$1" | head -n 1)"
+    case "$v" in
+        ''|null|Null|NULL) printf '' ;;
+        *) printf '%s' "$v" ;;
+    esac
+}
+
+# Guarda o valor original só na primeira vez (primeiro write ganha).
+tweak_record() {
+    local key="$1" old="${2:-}"
+    mkdir -p "$DATA_DIR" || return 0
+    if [ -f "$TWEAKS_FILE" ] && \
+       awk -F'\t' -v k="$key" '$1==k{found=1} END{exit !found}' "$TWEAKS_FILE"; then
+        return 0
+    fi
+    printf '%s\t%s\n' "$key" "$old" >> "$TWEAKS_FILE"
+}
+
+tweak_forget() {
+    local key="$1" tmp
+    [ -f "$TWEAKS_FILE" ] || return 0
+    tmp="${TWEAKS_FILE}.tmp.$$"
+    awk -F'\t' -v k="$key" '$1!=k' "$TWEAKS_FILE" > "$tmp" 2>/dev/null || true
+    mv "$tmp" "$TWEAKS_FILE"
+}
+
+# Aplica um setting e confere se o firmware aceitou.
+tweak_apply() {
+    local key="$1" value="$2" desc="${3:-}" optional="${4:-}" cur now
+    cur="$(tweak_get "$key")"
+
+    if [ -n "$optional" ] && [ -z "$cur" ]; then
+        dim "  - $key não existe neste firmware (pulado)"
+        TW_SKIPPED=$((TW_SKIPPED + 1))
+        return 0
+    fi
+
+    if [ "$cur" = "$value" ]; then
+        dim "  = $key já está em $value"
+        TW_SAME=$((TW_SAME + 1))
+        return 0
+    fi
+
+    if [ "$DRY_RUN" -eq 1 ]; then
+        say "  ~ $key: ${cur:-null} -> $value"
+        [ -n "$desc" ] && dim "      $desc"
+        TW_CHANGED=$((TW_CHANGED + 1))
+        return 0
+    fi
+
+    tweak_record "$key" "$cur"
+    sh_run settings put global "$key" "$value" >/dev/null
+    now="$(tweak_get "$key")"
+
+    if [ "$now" = "$value" ]; then
+        ok "  + $key = $value"
+        [ -n "$desc" ] && dim "      $desc"
+        TW_CHANGED=$((TW_CHANGED + 1))
+    else
+        warn "  ! $key não aceitou $value (firmware devolveu '${now:-null}')"
+        TW_IGNORED=$((TW_IGNORED + 1))
+    fi
+}
+
+# Remove uma chave (volta ao default do sistema).
+tweak_clear() {
+    local key="$1" cur now
+    cur="$(tweak_get "$key")"
+    if [ -z "$cur" ]; then
+        dim "  = $key já está no padrão"
+        TW_SAME=$((TW_SAME + 1))
+        return 0
+    fi
+    if [ "$DRY_RUN" -eq 1 ]; then
+        say "  ~ $key: ${cur} -> padrão"
+        TW_CHANGED=$((TW_CHANGED + 1))
+        return 0
+    fi
+    tweak_record "$key" "$cur"
+    sh_run settings delete global "$key" >/dev/null 2>&1
+    now="$(tweak_get "$key")"
+    if [ -z "$now" ]; then
+        ok "  + $key removido (padrão do sistema)"
+        TW_CHANGED=$((TW_CHANGED + 1))
+    else
+        warn "  ! $key continua em '${now}'"
+        TW_IGNORED=$((TW_IGNORED + 1))
+    fi
+}
+
+# Ações em pacotes (GOS) registradas no mesmo arquivo, com prefixo pkg:
+tweak_record_pkg() {
+    local pkg="$1"
+    mkdir -p "$DATA_DIR" || return 0
+    if [ -f "$TWEAKS_FILE" ] && \
+       awk -F'\t' -v k="pkg:$pkg" '$1==k{found=1} END{exit !found}' "$TWEAKS_FILE"; then
+        return 0
+    fi
+    printf 'pkg:%s\t0\n' "$pkg" >> "$TWEAKS_FILE"
+}
+
+tweak_disable_pkg() {
+    local pkg="$1" desc="${2:-}" out
+    if sh_run pm list packages -d --user 0 | sed -n 's/^package://p' | grep -Fxq "$pkg"; then
+        dim "  = $pkg já está desativado"
+        TW_SAME=$((TW_SAME + 1))
+        return 0
+    fi
+    if [ "$DRY_RUN" -eq 1 ]; then
+        say "  ~ desativar pacote $pkg"
+        [ -n "$desc" ] && dim "      $desc"
+        TW_CHANGED=$((TW_CHANGED + 1))
+        return 0
+    fi
+    tweak_record_pkg "$pkg"
+    out="$(sh_run pm disable-user --user 0 "$pkg")"
+    case "$out" in
+        *disabled*|*Success*)
+            ok "  + pacote desativado: $pkg"
+            [ -n "$desc" ] && dim "      $desc"
+            TW_CHANGED=$((TW_CHANGED + 1))
+            ;;
+        *)
+            warn "  ! não consegui desativar $pkg ($out)"
+            TW_IGNORED=$((TW_IGNORED + 1))
+            ;;
+    esac
+}
+
+tweak_enable_pkg() {
+    local pkg="$1" out
+    out="$(sh_run pm enable "$pkg")"
+    case "$out" in
+        *enabled*|*Success*)
+            ok "  + pacote reativado: $pkg"
+            tweak_forget "pkg:$pkg"
+            return 0
+            ;;
+        *)
+            err "  x não consegui reativar $pkg ($out)"
+            return 1
+            ;;
+    esac
+}
+
+cmd_tweaks_status() {
+    step "Ajustes aplicados por este script"
+    if [ ! -s "$TWEAKS_FILE" ]; then
+        say "  nenhum (arquivo $TWEAKS_FILE vazio ou inexistente)"
+        return 0
+    fi
+    awk -F'\t' '{
+        if ($1 ~ /^pkg:/) printf "  pacote  %-38s (desativado)\n", substr($1, 5)
+        else             printf "  setting %-38s original: %s\n", $1, ($2 == "" ? "(null)" : $2)
+    }' "$TWEAKS_FILE"
+    say ""
+    dim "  reverter todos: ./scamsung tweaks --reset"
+}
+
+cmd_tweaks_reset() {
+    local key old now total=0 changed=0 failed=0
+    if [ ! -s "$TWEAKS_FILE" ]; then
+        ok "  nada para reverter (nenhum ajuste registrado)."
+        say ""
+        dim "  Se você aplicou o Tweaks.bat antigo, use:"
+        dim "    ./scamsung tweaks --defaults"
+        return 0
+    fi
+
+    step "Revertendo ajustes registrados"
+    while IFS="$(printf '\t')" read -r key old || [ -n "$key" ]; do
+        [ -z "$key" ] && continue
+        total=$((total + 1))
+        if [ "$DRY_RUN" -eq 1 ]; then
+            case "$key" in
+                pkg:*) say "  ~ reativar ${key#pkg:}" ;;
+                *)     say "  ~ $key -> ${old:-(null)}" ;;
+            esac
+            changed=$((changed + 1))
+            continue
+        fi
+        case "$key" in
+            pkg:*)
+                if tweak_enable_pkg "${key#pkg:}"; then
+                    changed=$((changed + 1))
+                else
+                    failed=$((failed + 1))
+                fi
+                continue
+                ;;
+        esac
+        if [ -z "$old" ]; then
+            sh_run settings delete global "$key" >/dev/null 2>&1
+        else
+            sh_run settings put global "$key" "$old" >/dev/null
+        fi
+        now="$(tweak_get "$key")"
+        if [ "$now" = "$old" ]; then
+            ok "  + $key = ${old:-(padrão)}"
+            tweak_forget "$key"
+            changed=$((changed + 1))
+        else
+            err "  x $key não voltou para '${old:-(padrão)}' (agora '${now:-null}')"
+            failed=$((failed + 1))
+        fi
+    done < "$TWEAKS_FILE"
+
+    say ""
+    say "  revertidos: $changed de $total"
+    [ "$failed" -gt 0 ] && err "  falhas: $failed (continuam registradas para nova tentativa)"
+    [ "$DRY_RUN" -eq 0 ] && [ "$failed" -eq 0 ] && : > "$TWEAKS_FILE"
+    return 0
+}
+
+# Valores que o Tweaks.bat original aplicava e que continuam fazendo sentido.
+cmd_tweaks_apply() {
+    say ""
+    say "Conjunto leve: animações mais rápidas, freezer de apps em background,"
+    say "bateria adaptativa ligada e menos varredura. Reversível com tweaks --reset."
+    step "Interface e bateria"
+    tweak_apply window_animation_scale 0.5 "janelas mais rápidas; não muda desempenho real"
+    tweak_apply transition_animation_scale 0.5
+    tweak_apply animator_duration_scale 0.5
+    tweak_apply cached_apps_freezer enabled "congela apps em segundo plano (padrão no Android 11+)" optional
+    tweak_apply adaptive_battery_management_enabled 1 "bateria adaptativa LIGADA (o .bat original desligava, o que piora a autonomia)" optional
+    tweak_apply send_action_app_error 0 "esconde o diálogo 'app parou de responder'" optional
+
+    step "Privacidade e varredura"
+    tweak_apply wifi_scan_always_enabled 0 "menos varredura de Wi-Fi em background; piora um pouco a localização por rede"
+    tweak_apply bluetooth_scan_always_enabled 0 "idem para Bluetooth" optional
+
+    say ""
+    if [ "$DRY_RUN" -eq 1 ]; then
+        say "  (dry-run) nada alterado."
+    else
+        say "  alterados: $TW_CHANGED | já estavam: $TW_SAME | ignorados: $TW_IGNORED | pulados: $TW_SKIPPED"
+        say ""
+        dim "  reverter: ./scamsung tweaks --reset"
+        dim "  ver o que foi mudado: ./scamsung tweaks --status"
+    fi
+}
+
+# Modo performance: o miolo "agressivo" do Tweaks.bat original.
+cmd_tweaks_performance() {
+    local resp
+
+    warn "  Modo performance: mexe em GOS, RAM Plus, zram e controle térmico."
+    warn "  Efeitos colaterais reais: mais calor sob carga, jogos sem otimização e"
+    warn "  perda das estatísticas do GOS (o pm clear apaga os dados do app)."
+    if [ "$DRY_RUN" -eq 0 ] && [ "$ASSUME_YES" -eq 0 ]; then
+        printf '  continuar? [s/N] '
+        read -r resp
+        case "$resp" in
+            s|S|sim|SIM|y|Y) ;;
+            *) say "  cancelado."; return 0 ;;
+        esac
+    fi
+
+    step "Animações no valor do Tweaks.bat (0.35x)"
+    tweak_apply window_animation_scale 0.35 "como no .bat original; 0.5x é mais equilibrado"
+    tweak_apply transition_animation_scale 0.35
+    tweak_apply animator_duration_scale 0.35
+
+    step "GOS: Game Optimizing Service"
+    tweak_disable_pkg com.samsung.android.game.gos "para de limitar jogos; jogos podem esquentar mais"
+    if [ "$DRY_RUN" -eq 0 ]; then
+        sh_run pm clear --user 0 com.samsung.android.game.gos >/dev/null 2>&1
+        dim "  GOS: dados do app limpos (estatísticas de jogo zeradas)"
+    fi
+
+    step "RAM Plus / zram (swap em armazenamento)"
+    tweak_apply ram_expand_size 0 "desliga a RAM virtual; em 6 GB pode piorar multitarefa" optional
+    tweak_apply zram_enabled 0 "desliga compressão de memória; em aparelho com pouca RAM pode piorar" optional
+
+    step "Térmico"
+    tweak_apply game_auto_temperature_control 0 "só afeta jogos; o aparelho esquenta mais e pode throttlar" optional
+}
+
+# RAM Plus: só mexe se a chave existir no firmware.
+cmd_tweaks_ram_plus() {
+    local mode="$1" cur
+    case "$mode" in
+        off|0|disable)
+            step "Desligando RAM Plus (swap em armazenamento)"
+            cur="$(tweak_get ram_expand_size)"
+            if [ "$cur" = "0" ]; then
+                dim "  = ram_expand_size já está em 0"
+            elif [ -z "$cur" ]; then
+                warn "  ! este firmware não expõe 'ram_expand_size'."
+                say "    Ajuste manual: Configurações > Assistência do aparelho > Memória > RAM Plus."
+            else
+                tweak_apply ram_expand_size 0 "troca espaço de armazenamento por RAM virtual; em aparelho com 8 GB+ costuma não valer a pena"
+            fi
+            ;;
+        on|auto|default|reset)
+            step "Voltando RAM Plus ao padrão do sistema"
+            tweak_clear ram_expand_size
+            ;;
+        *)
+            err "uso: ./scamsung tweaks --ram-plus off|on"
+            return 1
+            ;;
+    esac
+}
+
+cmd_tweaks() {
+    local sub="${1:-}" extra="${2:-}"
+    TW_CHANGED=0; TW_SAME=0; TW_IGNORED=0; TW_SKIPPED=0
+
+    case "$sub" in
+        --status|status)
+            cmd_tweaks_status
+            return 0
+            ;;
+        --defaults)
+            # limpa só o registro local, sem tocar no aparelho
+            if [ -f "$TWEAKS_FILE" ]; then
+                : > "$TWEAKS_FILE"
+                ok "  registro local de tweaks limpo."
+            else
+                dim "  nada para limpar."
+            fi
+            return 0
+            ;;
+    esac
+
+    require_adb
+    select_device
+    load_device_info
+    say ""
+    print_device_header
+
+    case "$sub" in
+        ''|apply)
+            cmd_tweaks_apply
+            ;;
+        --reset|reset)
+            cmd_tweaks_reset
+            ;;
+        --ram-plus|ram-plus)
+            cmd_tweaks_ram_plus "$extra" || return 1
+            ;;
+        --performance|performance|--full|full)
+            cmd_tweaks_performance
+            ;;
+        *)
+            err "não conheço esse modo de tweaks: $sub"
+            say ""
+            say "  ./scamsung tweaks                 conjunto leve (animações, bateria, varredura)"
+            say "  ./scamsung tweaks --performance   GOS off, RAM Plus/zram off, térmico de jogos off"
+            say "  ./scamsung tweaks --status        o que já foi mudado e o valor original"
+            say "  ./scamsung tweaks --reset         devolve exatamente o que este script mudou"
+            say "  ./scamsung tweaks --ram-plus off  liga/desliga só a RAM Plus"
+            return 1
+            ;;
+    esac
+
+    say ""
+    dim "  nenhum ajuste mexe em root, Knox ou partições."
+}
+
+cmd_wireless() {
+    require_adb
+    say ""
+    say "No celular: Configurações > Opções do desenvolvedor > Depuração sem fio"
+    say "Toque em 'Emparelhar dispositivo com código' e copie IP:porta + código."
+    say ""
+    printf 'IP:porta de emparelhamento (ex. 192.168.0.12:37123): '
+    read -r pair_addr
+    printf 'Código de 6 dígitos: '
+    read -r pair_code
+    [ -z "$pair_addr" ] || [ -z "$pair_code" ] && die "dados de emparelhamento incompletos."
+
+    "$ADB" pair "$pair_addr" "$pair_code" || warn "pareamento retornou erro; se o celular mostrar 'conectado', siga."
+
+    say ""
+    printf 'IP:porta de conexão (ex. 192.168.0.12:41234): '
+    read -r conn_addr
+    [ -z "$conn_addr" ] && die "endereço de conexão vazio."
+
+    "$ADB" connect "$conn_addr"
+    say ""
+    "$ADB" devices | tr -d '\r'
+}
+
+cmd_self_test() {
+    local errors=0 warnings=0 f preset line pkg lineno dup missing next
+    step "Validando presets"
+
+    if [ ! -d "$LISTS_DIR" ]; then
+        err "  pasta não encontrada: $LISTS_DIR"
+        return 1
+    fi
+
+    for f in "$LISTS_DIR"/*.txt; do
+        [ -f "$f" ] || continue
+        preset="$(basename "$f" .txt)"
+        lineno=0
+        while IFS= read -r line || [ -n "$line" ]; do
+            lineno=$((lineno + 1))
+            case "$line" in
+                ''|'#'*) continue ;;
+            esac
+            pkg="$(strip_line "$line")"
+            [ -z "$pkg" ] && continue
+            case "$line" in
+                *'#'*) ;;
+                *)
+                    err "  $preset:$lineno sem explicação (falta '# ...')"
+                    errors=$((errors + 1))
+                    ;;
+            esac
+            case "$pkg" in
+                *[!A-Za-z0-9._]*)
+                    err "  nome inválido em $preset:$lineno: $pkg"
+                    errors=$((errors + 1))
+                    continue
+                    ;;
+            esac
+            if ! printf '%s' "$pkg" | grep -Eq '^[A-Za-z0-9_]+(\.[A-Za-z0-9_]+)+$'; then
+                err "  nome fora do padrão em $preset:$lineno: $pkg"
+                errors=$((errors + 1))
+            fi
+            if is_denied "$pkg"; then
+                err "  pacote protegido em $preset: $pkg"
+                errors=$((errors + 1))
+            fi
+        done < "$f"
+
+        dup="$(read_preset "$f" | sort | uniq -d)"
+        if [ -n "$dup" ]; then
+            while IFS= read -r pkg; do
+                [ -z "$pkg" ] && continue
+                err "  duplicado em $preset: $pkg"
+                errors=$((errors + 1))
+            done <<EOF
+$dup
+EOF
+        fi
+    done
+
+    for preset in basic light heavy; do
+        if [ ! -f "$(preset_path "$preset")" ]; then
+            err "  preset ausente: lists/$preset.txt"
+            errors=$((errors + 1))
+        fi
+    done
+
+    # heavy contém light, light contém basic
+    local nest_a nest_b
+    for preset in basic light; do
+        case "$preset" in
+            basic) next="light" ;;
+            light) next="heavy" ;;
+        esac
+        [ -f "$(preset_path "$preset")" ] || continue
+        [ -f "$(preset_path "$next")" ] || continue
+        nest_a="$(work_file nest-small.txt)"
+        nest_b="$(work_file nest-big.txt)"
+        read_preset "$(preset_path "$preset")" | sort -u > "$nest_a"
+        read_preset "$(preset_path "$next")" | sort -u > "$nest_b"
+        missing="$(comm -23 "$nest_a" "$nest_b")"
+        if [ -n "$missing" ]; then
+            while IFS= read -r pkg; do
+                [ -z "$pkg" ] && continue
+                err "  $pkg está em $preset mas não em $next"
+                errors=$((errors + 1))
+            done <<EOF
+$missing
+EOF
+        fi
+    done
+
+    say ""
+    if [ "$errors" -eq 0 ]; then
+        [ "$warnings" -gt 0 ] && warn "$warnings aviso(s) acima."
+        ok "presets ok"
+        return 0
+    fi
+    err "$errors erro(s), $warnings aviso(s) — corrija e rode ./scamsung self-test de novo"
+    return 1
+}
+
+# ---------------------------------------------------------------------------
+# menu
+# ---------------------------------------------------------------------------
+
+menu() {
+    local choice p t
+    while true; do
+        printf '\n%s%s %s%s\n' "$C_BOLD" "$APP_NAME" "$APP_VERSION" "$C_RESET"
+        printf '  1) Diagnóstico do aparelho\n'
+        printf '  2) Aplicar preset (basic, light, heavy)\n'
+        printf '  3) Ver o que você já removeu\n'
+        printf '  4) Restaurar tudo\n'
+        printf '  5) Tweaks (GOS, RAM Plus, animações...)\n'
+        printf '  6) Ver pacotes instalados (scan)\n'
+        printf '  7) Parear por Wi-Fi\n'
+        printf '  8) Sair\n'
+        printf 'Escolha: '
+        read -r choice
+        case "$choice" in
+            1) cmd_doctor ;;
+            2)
+                printf '\nPresets: %s\n' "$(list_presets | tr '\n' ' ')"
+                printf 'Qual preset? '
+                read -r p
+                [ -n "$p" ] && cmd_apply "$p"
+                ;;
+            3) cmd_status ;;
+            4) cmd_restore ;;
+            5)
+                printf '\n%sTweaks%s — tudo aqui é reversível com a opção r.\n' "$C_BOLD" "$C_RESET"
+                printf '  \n'
+                printf '  p) performance  %s(recomendado para jogos)%s\n' "$C_BOLD" "$C_RESET"
+                printf '     - desativa o GOS: jogos param de ser limitados pela Samsung\n'
+                printf '     - desliga RAM Plus e zram (swap em armazenamento)\n'
+                printf '     - animações a 0.35x (valor do Tweaks.bat original)\n'
+                printf '     - desliga o controle térmico de jogos\n'
+                printf '     Preço: mais calor sob carga, multitarefa pode reabrir mais apps\n'
+                printf '     e as estatísticas do GOS são apagadas (pm clear).\n'
+                printf '  \n'
+                printf '  a) leves        o pacotinho de bom senso\n'
+                printf '     - animações a 0.5x\n'
+                printf '     - freezer de apps em background\n'
+                printf '     - bateria adaptativa ligada\n'
+                printf '     - menos varredura de Wi-Fi/Bluetooth em segundo plano\n'
+                printf '  \n'
+                printf '  s) status       mostra o que este script já mudou e o valor original\n'
+                printf '  r) resetar      devolve exatamente o que ESTE script mudou\n'
+                printf '  \n'
+                printf 'Qual? [p]: '
+                read -r t
+                case "$t" in
+                    a|A) cmd_tweaks ;;
+                    s|S) cmd_tweaks --status ;;
+                    r|R) cmd_tweaks --reset ;;
+                    ''|p|P) cmd_tweaks --performance ;;
+                    *) warn "opção inválida." ;;
+                esac
+                ;;
+            6)
+                printf 'Termo (enter = todos): '
+                read -r t
+                cmd_scan "$t"
+                ;;
+            7) cmd_wireless ;;
+            8) exit 0 ;;
+            '') ;;
+            *) warn "opção inválida." ;;
+        esac
+    done
+}
+
+# ---------------------------------------------------------------------------
+# main
+# ---------------------------------------------------------------------------
+
+# contadores globais
+REMOVED=0; DISABLED=0; ALREADY=0; MISSING=0; FAILED=0; BLOCKED=0; WILL=0
+TARGET_LABEL=""
+
+while [ $# -gt 0 ]; do
+    case "$1" in
+        -y|--yes)     ASSUME_YES=1; shift ;;
+        --disable)    METHOD="disable"; shift ;;
+        --skip)       [ $# -ge 2 ] || die "--skip precisa de argumento"; SKIP="$2"; shift 2 ;;
+        --only)       [ $# -ge 2 ] || die "--only precisa de argumento"; ONLY="$2"; shift 2 ;;
+        -s|--serial)  [ $# -ge 2 ] || die "--serial precisa de argumento"; SERIAL="$2"; shift 2 ;;
+        -v|--verbose) VERBOSE=1; shift ;;
+        -q|--quiet)   QUIET=1; shift ;;
+        -h|--help)    usage; exit 0 ;;
+        --)           shift; break ;;
+        --categories) err "--categories não existe mais: use ./scamsung apply <preset>"; exit 1 ;;
+        -*)           err "opção desconhecida: $1"; usage; exit 1 ;;
+        *)            break ;;
+    esac
+done
+
+CMD="${1:-menu}"
+[ $# -gt 0 ] && shift
+
+# opções também aceitas depois do subcomando (ex.: apply basic --dry-run)
+if [ "$CMD" = "apply" ]; then
+    ARGS=""
+    while [ $# -gt 0 ]; do
+        case "$1" in
+                -y|--yes)     ASSUME_YES=1; shift ;;
+            --disable)    METHOD="disable"; shift ;;
+            --skip)       [ $# -ge 2 ] || die "--skip precisa de argumento"; SKIP="$2"; shift 2 ;;
+            --only)       [ $# -ge 2 ] || die "--only precisa de argumento"; ONLY="$2"; shift 2 ;;
+                -v|--verbose) VERBOSE=1; shift ;;
+            -q|--quiet)   QUIET=1; shift ;;
+            --categories) err "--categories não existe mais: use ./scamsung apply <preset>"; exit 1 ;;
+            -*)           err "opção desconhecida: $1"; exit 1 ;;
+            *)            ARGS="$ARGS $1"; shift ;;
+        esac
+    done
+    set -- $ARGS
+fi
+
+init_work_dir
+
+case "$CMD" in
+    menu)      menu ;;
+    doctor)    cmd_doctor ;;
+    status)    cmd_status ;;
+    list)      cmd_list ;;
+    apply)     cmd_apply "${1:-}" ;;
+    restore)   cmd_restore ;;
+    scan)      cmd_scan "${1:-}" ;;
+    explain)   cmd_explain "${1:-}" ;;
+    tweaks)    cmd_tweaks "${1:-}" "${2:-}" ;;
+    wireless)  cmd_wireless ;;
+    self-test) cmd_self_test ;;
+    help|-h|--help) usage ;;
+    shell)
+        require_adb
+        select_device
+        adb_run shell "$@"
+        ;;
+    *) err "comando desconhecido: $CMD"; usage; exit 1 ;;
+esac

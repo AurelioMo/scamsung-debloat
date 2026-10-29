@@ -1,0 +1,120 @@
+# Basic: o mínimo. Remove pré-instalados, Facebook/Microsoft, apps Google opcionais,
+# AR, Edge e limpeza AOSP sem perder conta Samsung, Galaxy AI ou Health.
+# Risco: BAIXO. Nada aqui derruba conta Samsung, Galaxy AI, Health, notificações, Play Store ou telefone.
+#
+# Cada linha é um pacote + o que é / o que quebra se remover.
+# Reverter: ./scamsung restore
+
+android.autoinstalls.config.samsung                          # configuração de autoinstalação de apps Samsung pós-setup
+com.amazon.avod.thirdpartyclient                             # Prime Video
+com.amazon.mShop.android.shopping                            # Amazon Shopping
+com.android.bookmarkprovider                                 # provider de bookmarks (compatibilidade AOSP)
+com.android.chrome                                           # Chrome (navegador)
+com.android.dreams.basic                                     # screensaver Daydream básico
+com.android.dreams.phototable                                # screensaver de fotos (Daydream)
+com.android.egg                                              # easter egg do Android (versão escondida)
+com.android.hotwordenrollment.okgoogle                       # cadastro do hotword "Ok Google"
+com.android.hotwordenrollment.tgoogle                        # cadastro do hotword "Hey Google" (Tensor)
+com.android.hotwordenrollment.xgoogle                        # cadastro do hotword para o Google app
+com.android.providers.partnerbookmarks                       # bookmarks de parceiros (pré-instalados)
+com.android.traceur                                          # app de tracing do sistema (desenvolvedor)
+com.android.wallpaperbackup                                  # backup de papel de parede
+com.diotek.sec.lookup.dictionary                             # dicionário Diotek (consulta de palavras)
+com.eterno                                                   # app de notícias/vídeos (parceria regional)
+com.eterno.shortvideos                                       # shorts de notícias (parceria regional)
+com.facebook.appmanager                                      # instalador/atualizador de apps da Meta
+com.facebook.katana                                          # Facebook
+com.facebook.services                                        # serviços de background da Meta
+com.facebook.system                                          # serviços de sistema da Meta
+com.google.android.apps.accessibility.voiceaccess            # Voice Access (acessibilidade por voz)
+com.google.android.apps.chromecast.app                       # Google Home (Chromecast/Nest)
+com.google.android.apps.docs                                 # Google Drive
+com.google.android.apps.docs.editors.docs                    # Google Docs
+com.google.android.apps.docs.editors.sheets                  # Google Sheets
+com.google.android.apps.docs.editors.slides                  # Google Slides
+com.google.android.apps.magazines                            # Google News
+com.google.android.apps.maps                                 # Google Maps
+com.google.android.apps.nbu.files                            # Files by Google
+com.google.android.apps.photos                               # Google Photos
+com.google.android.apps.podcasts                             # Google Podcasts
+com.google.android.apps.restore                              # restauração de backup do Google
+com.google.android.apps.setupwizard.searchselector           # seletor de busca do setup
+com.google.android.apps.subscriptions.red                    # Google One (assinatura)
+com.google.android.apps.tachyon                              # Google Meet
+com.google.android.apps.walletnfcrel                         # Google Wallet (pagamento por NFC)
+com.google.android.apps.wellbeing                            # Digital Wellbeing do Google
+com.google.android.apps.youtube.music                        # YouTube Music
+com.google.android.feedback                                  # envio de feedback do Google
+com.google.android.gm                                        # Gmail
+com.google.android.health.connect.backuprestore              # backup do Health Connect
+com.google.android.healthconnect.controller                  # Health Connect (ponte de dados de saúde)
+com.google.android.onetimeinitializer                        # inicialização única pós-setup
+com.google.android.partnersetup                              # configuração de parceiros Google
+com.google.android.printservice.recommendation               # sugestões de impressoras
+com.google.android.projection.gearhead                       # Android Auto
+com.google.android.videos                                    # Google TV / Play Filmes
+com.google.android.youtube                                   # YouTube
+com.linkedin.android                                         # LinkedIn
+com.microsoft.appmanager                                     # Link to Windows / "Seu telefone"
+com.microsoft.office.officehubrow                            # stub do Microsoft 365/Office
+com.microsoft.office.outlook                                 # Outlook
+com.microsoft.skydrive                                       # OneDrive
+com.netflix.mediaclient                                      # Netflix
+com.netflix.partner.activation                               # ativação de parceria Netflix/operadora
+com.opera.browser                                            # Opera
+com.opera.max.oem                                            # Opera Max (economia de dados, descontinuado)
+com.samsung.android.app.appsedge                             # painel Edge de apps
+com.samsung.android.app.camera.sticker.facear.preload        # máscaras de rosto pré-carregadas
+com.samsung.android.app.camera.sticker.facear3d.preload      # máscaras 3D pré-carregadas
+com.samsung.android.app.camera.sticker.facearavatar.preload  # máscaras de avatar pré-carregadas
+com.samsung.android.app.camera.sticker.facearframe.preload   # molduras de rosto pré-carregadas
+com.samsung.android.app.camera.sticker.stamp.preload         # carimbos pré-carregados
+com.samsung.android.app.clipboardedge                        # painel Edge de área de transferência
+com.samsung.android.app.cocktailbarservice                   # serviço que desenha/aciona os painéis de borda
+com.samsung.android.app.omcagent                             # OMC Agent: apps recomendados por região/operadora
+com.samsung.android.app.sbrowseredge                         # painel Edge do Samsung Internet
+com.samsung.android.app.taskedge                             # painel Edge de tarefas recentes
+com.samsung.android.ardrawing                                # AR Doodle: desenhar no ar com S Pen
+com.samsung.android.aremoji                                  # AR Emoji: avatar 3D que imita seu rosto
+com.samsung.android.aremojieditor                            # editor do AR Emoji
+com.samsung.android.arzone                                   # AR Zone: estúdio de RA (câmera)
+com.samsung.android.beaconmanager                            # varredura BLE contínua em background
+com.samsung.android.dqagent                                  # Device Quality Agent: logs de qualidade/diagnóstico
+com.samsung.android.ipsgeofence                              # Samsung Visit In (geofence por beacons)
+com.samsung.android.knox.analytics.uploader                  # envio de analytics do Knox
+com.samsung.android.livestickers                             # DECO PIC: stickers animados na câmera
+com.samsung.android.mapsagent                                # Maps Agent: recomenda/instala apps por localização
+com.samsung.android.rubin.app                                # Customization Service (perfil de personalização)
+com.samsung.android.securitylogagent                         # SecurityLogAgent: alertas de segurança/logs
+com.samsung.android.service.peoplestripe                     # People Edge (contatos favoritos)
+com.samsung.android.sm.devicesecurity                        # "Device security": scan com motor McAfee
+com.samsung.android.stickercenter                            # central de stickers da câmera/galeria
+com.samsung.android.svcagent                                 # Samsung service agent (telemetria de serviços)
+com.samsung.attribution                                      # attribution/telemetria da Galaxy Store
+com.samsung.discover                                         # painel "Discover" na One UI Home
+com.samsung.discover.sep                                     # serviço do painel Discover
+com.samsung.gpuwatchapp                                      # monitor de GPU (diagnóstico)
+com.samsung.klmsagent                                        # KLMS: licenciamento Knox + telemetria
+com.sec.android.CcInfo                                       # coleta de informações do aparelho (parceria)
+com.sec.android.app.DataCreate                               # app de criação de dados de teste (engenharia)
+com.sec.android.app.camera.sticker                           # suporte a stickers da câmera
+com.sec.android.app.factorykeystring                         # strings de fábrica/teste
+com.sec.android.app.hwmoduletest                             # teste de módulos de hardware
+com.sec.android.app.parser                                   # parser de dados de setup/OTA
+com.sec.android.app.servicemodeapp                           # modo de serviço (diagnóstico de rede)
+com.sec.android.app.suwscriptplayer                          # player de scripts do setup wizard
+com.sec.android.app.wlantest                                 # teste de Wi-Fi (engenharia)
+com.sec.android.diagmonagent                                 # relatórios de diagnóstico (DiagMon)
+com.sec.android.mimage.avatarstickers                        # stickers de avatar para mensagens
+com.sec.android.smartfpsadjuster                             # ajuste de taxa de quadros (diagnóstico)
+com.sec.android.widgetapp.webmanual                          # manual do usuário em widget
+com.snap.camerakit.plugin.v1                                 # plugin de câmera do Snapchat
+com.snapchat.android                                         # Snapchat
+com.spotify.music                                            # Spotify
+com.yandex.browser                                           # Yandex Browser
+com.zhiliaoapp.musically                                     # TikTok
+flipboard.boxer.app                                          # Flipboard
+in.amazon.mShop.android.shopping                             # Amazon Shopping (variante Índia)
+ru.yandex.disk                                               # Yandex Disk
+ru.yandex.searchplugin                                       # Yandex Search
+ru.yandex.yandexmaps                                         # Yandex Maps

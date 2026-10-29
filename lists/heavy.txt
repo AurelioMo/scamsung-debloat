@@ -1,0 +1,271 @@
+# Heavy: remove o máximo que ainda é reversível.
+# Inclui o light + Device Care, Notes, Calculadora, Quick Share, TTS e remoções AOSP agressivas.
+# Risco: MÉDIO/ALTO. Muitos recursos somem. Leia a linha antes de aplicar.
+#
+# Cada linha é um pacote + o que é / o que quebra se remover.
+# Reverter: ./scamsung restore
+
+android.autoinstalls.config.samsung                          # configuração de autoinstalação de apps Samsung pós-setup
+com.amazon.avod.thirdpartyclient                             # Prime Video
+com.amazon.mShop.android.shopping                            # Amazon Shopping
+com.android.bookmarkprovider                                 # provider de bookmarks (compatibilidade AOSP)
+com.android.calllogbackup                                    # backup/restauração do histórico de chamadas
+com.android.chrome                                           # Chrome (navegador)
+com.android.cts.ctsshim                                      # Compatibility Test Suite (testes de compatibilidade)
+com.android.dreams.basic                                     # screensaver Daydream básico
+com.android.dreams.phototable                                # screensaver de fotos (Daydream)
+com.android.egg                                              # easter egg do Android (versão escondida)
+com.android.hotwordenrollment.okgoogle                       # cadastro do hotword "Ok Google"
+com.android.hotwordenrollment.tgoogle                        # cadastro do hotword "Hey Google" (Tensor)
+com.android.hotwordenrollment.xgoogle                        # cadastro do hotword para o Google app
+com.android.printspooler                                     # impressão do Android: só remova se você nunca imprime
+com.android.providers.partnerbookmarks                       # bookmarks de parceiros (pré-instalados)
+com.android.sharedstoragebackup                              # backup do armazenamento compartilhado (arquivos)
+com.android.stk                                              # SIM Toolkit 1: menus da operadora no chip (algumas usam)
+com.android.stk2                                             # SIM Toolkit 2: idem, segundo chip
+com.android.theme.color.black                                # cor de destaque "black" (AOSP/Pixel)
+com.android.theme.color.cinnamon                             # cor de destaque "cinnamon"
+com.android.theme.color.green                                # cor de destaque "green"
+com.android.theme.color.ocean                                # cor de destaque "ocean"
+com.android.theme.color.orchid                               # cor de destaque "orchid"
+com.android.theme.color.purple                               # cor de destaque "purple"
+com.android.theme.color.space                                # cor de destaque "space"
+com.android.theme.font.notoserifsource                       # fonte Noto Serif empacotada (AOSP)
+com.android.theme.icon.pebble                                # pacote de ícones "pebble" (AOSP/Pixel)
+com.android.theme.icon.roundedrect                           # pacote de ícones "rounded rect" (AOSP/Pixel)
+com.android.theme.icon.taperedrect                           # pacote de ícones "tapered rect" (AOSP/Pixel)
+com.android.theme.icon.teardrop                              # pacote de ícones "teardrop" (AOSP/Pixel)
+com.android.theme.icon.vessel                                # pacote de ícones "vessel" (AOSP/Pixel)
+com.android.theme.icon_pack.circular.android                 # ícone circular: apps Android
+com.android.theme.icon_pack.circular.launcher                # ícone circular: launcher
+com.android.theme.icon_pack.circular.settings                # ícone circular: Configurações
+com.android.theme.icon_pack.circular.systemui                # ícone circular: SystemUI
+com.android.theme.icon_pack.circular.themepicker             # ícone circular: seletor de tema
+com.android.theme.icon_pack.filled.android                   # ícone preenchido: apps Android
+com.android.theme.icon_pack.filled.launcher                  # ícone preenchido: launcher
+com.android.theme.icon_pack.filled.settings                  # ícone preenchido: Configurações
+com.android.theme.icon_pack.filled.systemui                  # ícone preenchido: SystemUI
+com.android.theme.icon_pack.filled.themepicker               # ícone preenchido: seletor de tema
+com.android.theme.icon_pack.rounded.android                  # ícone arredondado: apps Android
+com.android.theme.icon_pack.rounded.launcher                 # ícone arredondado: launcher
+com.android.theme.icon_pack.rounded.settings                 # ícone arredondado: Configurações
+com.android.theme.icon_pack.rounded.systemui                 # ícone arredondado: SystemUI
+com.android.theme.icon_pack.rounded.themepicker              # ícone arredondado: seletor de tema
+com.android.traceur                                          # app de tracing do sistema (desenvolvedor)
+com.android.wallpaperbackup                                  # backup de papel de parede
+com.diotek.sec.lookup.dictionary                             # dicionário Diotek (consulta de palavras)
+com.dsi.ant.plugins.antplus                                  # plugins do ANT+
+com.dsi.ant.sample.acquirechannels                           # app de exemplo do ANT+ (inútil no dia a dia)
+com.dsi.ant.server                                           # ANT+: cintas de frequência cardíaca e sensores esportivos
+com.dsi.ant.service.socket                                   # serviço do ANT+
+com.eterno                                                   # app de notícias/vídeos (parceria regional)
+com.eterno.shortvideos                                       # shorts de notícias (parceria regional)
+com.facebook.appmanager                                      # instalador/atualizador de apps da Meta
+com.facebook.katana                                          # Facebook
+com.facebook.services                                        # serviços de background da Meta
+com.facebook.system                                          # serviços de sistema da Meta
+com.google.android.apps.accessibility.voiceaccess            # Voice Access (acessibilidade por voz)
+com.google.android.apps.bard                                 # Gemini (One UI 8 usa em Photo Assist / Note Assist)
+com.google.android.apps.chromecast.app                       # Google Home (Chromecast/Nest)
+com.google.android.apps.docs                                 # Google Drive
+com.google.android.apps.docs.editors.docs                    # Google Docs
+com.google.android.apps.docs.editors.sheets                  # Google Sheets
+com.google.android.apps.docs.editors.slides                  # Google Slides
+com.google.android.apps.googleassistant                      # Google Assistant (voz, "Ok Google")
+com.google.android.apps.magazines                            # Google News
+com.google.android.apps.maps                                 # Google Maps
+com.google.android.apps.nbu.files                            # Files by Google
+com.google.android.apps.photos                               # Google Photos
+com.google.android.apps.podcasts                             # Google Podcasts
+com.google.android.apps.restore                              # restauração de backup do Google
+com.google.android.apps.setupwizard.searchselector           # seletor de busca do setup
+com.google.android.apps.subscriptions.red                    # Google One (assinatura)
+com.google.android.apps.tachyon                              # Google Meet
+com.google.android.apps.walletnfcrel                         # Google Wallet (pagamento por NFC)
+com.google.android.apps.wellbeing                            # Digital Wellbeing do Google
+com.google.android.apps.youtube.music                        # YouTube Music
+com.google.android.as                                        # Android System Intelligence: Live Caption, sugestões, respostas
+com.google.android.as.oss                                    # Private Compute Services (usado pelo ASI)
+com.google.android.feedback                                  # envio de feedback do Google
+com.google.android.gm                                        # Gmail
+com.google.android.googlequicksearchbox                      # Google app: Assistente, Discover e Circle to Search
+com.google.android.health.connect.backuprestore              # backup do Health Connect
+com.google.android.healthconnect.controller                  # Health Connect (ponte de dados de saúde)
+com.google.android.onetimeinitializer                        # inicialização única pós-setup
+com.google.android.partnersetup                              # configuração de parceiros Google
+com.google.android.printservice.recommendation               # sugestões de impressoras
+com.google.android.projection.gearhead                       # Android Auto
+com.google.android.syncadapters.calendar                     # sincronização do Google Agenda
+com.google.android.tts                                       # TTS do Google: leitura em voz alta de alguns apps
+com.google.android.videos                                    # Google TV / Play Filmes
+com.google.android.youtube                                   # YouTube
+com.google.ar.core                                           # serviços AR (AR Zone / Bixby Vision)
+com.linkedin.android                                         # LinkedIn
+com.microsoft.appmanager                                     # Link to Windows / "Seu telefone"
+com.microsoft.office.officehubrow                            # stub do Microsoft 365/Office
+com.microsoft.office.outlook                                 # Outlook
+com.microsoft.skydrive                                       # OneDrive
+com.netflix.mediaclient                                      # Netflix
+com.netflix.partner.activation                               # ativação de parceria Netflix/operadora
+com.opera.browser                                            # Opera
+com.opera.max.oem                                            # Opera Max (economia de dados, descontinuado)
+com.osp.app.signin                                           # conta Samsung (login central; sem ela nada Samsung sincroniza)
+com.samsung.android.aircommandmanager                        # Air Command: menu da S Pen
+com.samsung.android.app.appsedge                             # painel Edge de apps
+com.samsung.android.app.appupdater                           # atualizador de apps Samsung (descontinuado)
+com.samsung.android.app.camera.sticker.facear.preload        # máscaras de rosto pré-carregadas
+com.samsung.android.app.camera.sticker.facear3d.preload      # máscaras 3D pré-carregadas
+com.samsung.android.app.camera.sticker.facearavatar.preload  # máscaras de avatar pré-carregadas
+com.samsung.android.app.camera.sticker.facearframe.preload   # molduras de rosto pré-carregadas
+com.samsung.android.app.camera.sticker.stamp.preload         # carimbos pré-carregados
+com.samsung.android.app.clipboardedge                        # painel Edge de área de transferência
+com.samsung.android.app.cocktailbarservice                   # serviço que desenha/aciona os painéis de borda
+com.samsung.android.app.galaxyfinder                         # busca do sistema (lupa da gaveta de apps)
+com.samsung.android.app.headlines                            # Flipboard briefing (notícias na lockscreen)
+com.samsung.android.app.interpreter                          # Intérprete: tradução ao vivo (Galaxy AI)
+com.samsung.android.app.news                                 # Samsung News (agregador de notícias)
+com.samsung.android.app.notes                                # Samsung Notes (anotações e PDF)
+com.samsung.android.app.notes.addons                         # plugin de anotação em PDF/S Pen do Notes
+com.samsung.android.app.omcagent                             # OMC Agent: apps recomendados por região/operadora
+com.samsung.android.app.parentalcare                         # controle parental (bloquear apps)
+com.samsung.android.app.reminder                             # Samsung Reminder (lembretes; usado por Bixby)
+com.samsung.android.app.routines                             # Modes and Routines: automações param (UAD=Expert)
+com.samsung.android.app.sbrowseredge                         # painel Edge do Samsung Internet
+com.samsung.android.app.settings.bixby                       # tela de configurações do Bixby
+com.samsung.android.app.sharelive                            # Quick Share: compartilhar com Galaxy/PC
+com.samsung.android.app.simplesharing                        # Link Sharing (link temporário de arquivos)
+com.samsung.android.app.sketchbook                           # Sketchbook (desenho com S Pen)
+com.samsung.android.app.spage                                # Samsung Free (ex-Bixby Home), painel de notícias
+com.samsung.android.app.taskedge                             # painel Edge de tarefas recentes
+com.samsung.android.app.tips                                 # Samsung Tips (dicas de uso)
+com.samsung.android.app.updatecenter                         # atualiza apps Samsung (e pode reinstalar o que você removeu)
+com.samsung.android.app.watchmanager                         # Galaxy Wearable (relógio/fone Galaxy)
+com.samsung.android.app.watchmanagerstub                     # stub do Galaxy Wearable
+com.samsung.android.app.withtv                               # Smart View: espelhar a tela na TV
+com.samsung.android.appseparation                            # Separated Apps (sandbox para apps corporativos)
+com.samsung.android.ardrawing                                # AR Doodle: desenhar no ar com S Pen
+com.samsung.android.aremoji                                  # AR Emoji: avatar 3D que imita seu rosto
+com.samsung.android.aremojieditor                            # editor do AR Emoji
+com.samsung.android.arzone                                   # AR Zone: estúdio de RA (câmera)
+com.samsung.android.authfw                                   # framework de autenticação (FIDO/biometria para conta)
+com.samsung.android.aware.service                            # agente do Quick Share (varredura BLE)
+com.samsung.android.beaconmanager                            # varredura BLE contínua em background
+com.samsung.android.bixby.agent                              # app Bixby (interface)
+com.samsung.android.bixby.agent.dummy                        # stub do Bixby para aparelhos sem o app
+com.samsung.android.bixby.es.globalaction                    # ações globais do Bixby (rotinas do sistema)
+com.samsung.android.bixby.plmsync                            # sincronização de perfis do Bixby
+com.samsung.android.bixby.service                            # serviço do Bixby (executa comandos)
+com.samsung.android.bixby.voiceinput                         # entrada de voz do Bixby
+com.samsung.android.bixby.wakeup                             # "Hi Bixby": escuta contínua do microfone
+com.samsung.android.bixbyvision.framework                    # framework do Bixby Vision
+com.samsung.android.coldwalletservice                        # carteira de criptomoedas da Samsung
+com.samsung.android.dkey                                     # chave digital de carro
+com.samsung.android.dqagent                                  # Device Quality Agent: logs de qualidade/diagnóstico
+com.samsung.android.dynamiclock                              # Wallpaper services (Dynamic Lock na lockscreen)
+com.samsung.android.easysetup                                # descoberta de dispositivos próximos
+com.samsung.android.fmm                                      # Find My Mobile (localizar/bloquear o aparelho)
+com.samsung.android.forest                                   # Digital Wellbeing da Samsung
+com.samsung.android.game.gamehome                            # Game Launcher (hub de jogos)
+com.samsung.android.game.gametools                           # Game Booster (otimização durante o jogo)
+com.samsung.android.game.gos                                 # Game Optimizing Service (limita jogos; ver tweaks)
+com.samsung.android.ipsgeofence                              # Samsung Visit In (geofence por beacons)
+com.samsung.android.kidsinstaller                            # Kids Mode (instalador)
+com.samsung.android.knox.analytics.uploader                  # envio de analytics do Knox
+com.samsung.android.livestickers                             # DECO PIC: stickers animados na câmera
+com.samsung.android.livewallpaper.res                        # papéis de parede animados
+com.samsung.android.lool                                     # Device Care (bateria/armazenamento nas Configurações)
+com.samsung.android.mapsagent                                # Maps Agent: recomenda/instala apps por localização
+com.samsung.android.mcfds                                    # serviço de continuidade (Call & text on other devices)
+com.samsung.android.mcfserver                                # Multi Connectivity (continuidade entre aparelhos)
+com.samsung.android.mdecservice                              # chamadas e SMS em outros dispositivos Galaxy
+com.samsung.android.mdm                                      # Mobile Device Management (perfil corporativo)
+com.samsung.android.mdx                                      # Link to Windows (serviço)
+com.samsung.android.mdx.kit                                  # Quick Share / continuidade multi-dispositivo
+com.samsung.android.mfi                                      # Galaxy Widget (widgets de apps Samsung)
+com.samsung.android.mobileservice                            # Group Sharing / Samsung Experience Service (compartilhamento)
+com.samsung.android.oneconnect                               # SmartThings (casa conectada)
+com.samsung.android.penup                                    # PENUP (comunidade de desenho com S Pen)
+com.samsung.android.privateaccesstokens                      # tokens do Samsung Internet (recurso de privacidade)
+com.samsung.android.rubin.app                                # Customization Service (perfil de personalização)
+com.samsung.android.samsungpass                              # Samsung Pass (senhas e passkeys)
+com.samsung.android.samsungpassautofill                      # preenchimento automático do Samsung Pass
+com.samsung.android.scloud                                   # Samsung Cloud (backup e sincronização)
+com.samsung.android.sdk.handwriting                          # SDK de escrita à mão (S Pen)
+com.samsung.android.securitylogagent                         # SecurityLogAgent: alertas de segurança/logs
+com.samsung.android.service.livedrawing                      # Live Message (desenho animado em mensagens)
+com.samsung.android.service.peoplestripe                     # People Edge (contatos favoritos)
+com.samsung.android.service.stplatform                       # framework do SmartThings
+com.samsung.android.sm.devicesecurity                        # "Device security": scan com motor McAfee
+com.samsung.android.smartsuggestions                         # Smart Suggestions (sugestões de apps/atalhos)
+com.samsung.android.smartswitchassistant                     # assistente do Smart Switch
+com.samsung.android.spay                                     # Samsung Wallet (pagamento)
+com.samsung.android.spayfw                                   # framework do Samsung Wallet
+com.samsung.android.spaymini                                 # módulo leve do Samsung Pay (wearable)
+com.samsung.android.stickercenter                            # central de stickers da câmera/galeria
+com.samsung.android.svcagent                                 # Samsung service agent (telemetria de serviços)
+com.samsung.android.themecenter                              # Galaxy Themes (serviço de aplicação)
+com.samsung.android.themestore                               # Galaxy Themes (loja de temas)
+com.samsung.android.tvplus                                   # Samsung TV Plus (canais gratuitos)
+com.samsung.android.video                                    # Samsung Video Player
+com.samsung.android.visionarapps                             # apps de RA do Bixby Vision
+com.samsung.android.visionintelligence                       # Bixby Vision: traduzir/copiar texto pela câmera
+com.samsung.android.voc                                      # Samsung Members (suporte e comunidade)
+com.samsung.android.wallpaper.live                           # papéis de parede gerados por IA
+com.samsung.android.waterplugin                              # plugin de sensor de água/umidade
+com.samsung.app.highlightplayer                              # "Criar filme": montagem automática de vídeos
+com.samsung.attribution                                      # attribution/telemetria da Galaxy Store
+com.samsung.discover                                         # painel "Discover" na One UI Home
+com.samsung.discover.sep                                     # serviço do painel Discover
+com.samsung.ecomm.global.in                                  # Samsung Shop (loja de produtos)
+com.samsung.gpuwatchapp                                      # monitor de GPU (diagnóstico)
+com.samsung.klmsagent                                        # KLMS: licenciamento Knox + telemetria
+com.samsung.safetyinformation                                # avisos de segurança/recall da Samsung
+com.samsung.sec.android.teegris.tui_service                  # serviço TUI do Teegris (segurança corporativa)
+com.samsung.storyservice                                     # Stories: álbum automático no Gallery
+com.samsung.systemui.bixby                                   # integração do Bixby com a tela de bloqueio
+com.samsung.systemui.bixby2                                  # integração (versão 2) do Bixby com o SystemUI
+com.samsung.visionprovider                                   # provider de visão usado pelo Bixby Vision
+com.sec.android.CcInfo                                       # coleta de informações do aparelho (parceria)
+com.sec.android.app.DataCreate                               # app de criação de dados de teste (engenharia)
+com.sec.android.app.billing                                  # cobrança dentro de apps (Samsung Billing)
+com.sec.android.app.camera.sticker                           # suporte a stickers da câmera
+com.sec.android.app.chromecustomizations                     # customizações do Chrome feitas pela Samsung
+com.sec.android.app.factorykeystring                         # strings de fábrica/teste
+com.sec.android.app.hwmoduletest                             # teste de módulos de hardware
+com.sec.android.app.kidshome                                 # Kids Home (modo criança)
+com.sec.android.app.magnifier                                # Lupa (acessibilidade)
+com.sec.android.app.music                                    # Samsung Music
+com.sec.android.app.parser                                   # parser de dados de setup/OTA
+com.sec.android.app.popupcalculator                          # Calculadora Samsung
+com.sec.android.app.ringtoneBR                               # toques extras (variante BR)
+com.sec.android.app.samsungapps                              # Galaxy Store: sem ela apps Samsung não atualizam
+com.sec.android.app.sbrowser                                 # Samsung Internet (navegador)
+com.sec.android.app.servicemodeapp                           # modo de serviço (diagnóstico de rede)
+com.sec.android.app.setupwizardlegalprovider                 # textos legais do assistente de configuração
+com.sec.android.app.shealth                                  # Samsung Health (saúde e exercícios)
+com.sec.android.app.soundalive                               # Dolby Atmos / equalizador do Samsung
+com.sec.android.app.suwscriptplayer                          # player de scripts do setup wizard
+com.sec.android.app.vepreload                                # editor de vídeo da galeria
+com.sec.android.app.voicenote                                # Gravador de voz Samsung
+com.sec.android.app.withtv                                   # Smart View (variante do pacote)
+com.sec.android.app.wlantest                                 # teste de Wi-Fi (engenharia)
+com.sec.android.diagmonagent                                 # relatórios de diagnóstico (DiagMon)
+com.sec.android.easyMover                                    # Smart Switch (migrar dados de outro celular)
+com.sec.android.easyMover.Agent                              # agente do Smart Switch
+com.sec.android.easyonehand                                  # Modo uma mão (encolhe a tela)
+com.sec.android.mimage.avatarstickers                        # stickers de avatar para mensagens
+com.sec.android.service.health                               # serviço de background do Samsung Health
+com.sec.android.smartfpsadjuster                             # ajuste de taxa de quadros (diagnóstico)
+com.sec.android.widgetapp.webmanual                          # manual do usuário em widget
+com.sec.enterprise.knox.cloudmdm.smdms                       # Knox Cloud MDM (gestão corporativa)
+com.sec.hearingadjust                                        # Adapt Sound (ajuste de audição por perfil)
+com.snap.camerakit.plugin.v1                                 # plugin de câmera do Snapchat
+com.snapchat.android                                         # Snapchat
+com.spotify.music                                            # Spotify
+com.yandex.browser                                           # Yandex Browser
+com.zhiliaoapp.musically                                     # TikTok
+flipboard.boxer.app                                          # Flipboard
+in.amazon.mShop.android.shopping                             # Amazon Shopping (variante Índia)
+ru.yandex.disk                                               # Yandex Disk
+ru.yandex.searchplugin                                       # Yandex Search
+ru.yandex.yandexmaps                                         # Yandex Maps

@@ -1,0 +1,239 @@
+#!/usr/bin/env bash
+# adb falso para testes sem aparelho.
+# Simula um Galaxy com One UI 9 e um package manager persistente em FAKE_ADB_STATE.
+set -u
+
+STATE="${FAKE_ADB_STATE:-/tmp/fake-adb-state}"
+mkdir -p "$STATE"
+
+seed() {
+    [ -f "$STATE/installed.txt" ] && return 0
+    cat > "$STATE/installed.txt" <<'EOF'
+com.facebook.katana
+com.facebook.appmanager
+com.facebook.services
+com.facebook.system
+com.microsoft.appmanager
+com.microsoft.skydrive
+com.netflix.mediaclient
+com.android.chrome
+com.google.android.youtube
+com.google.android.apps.photos
+com.google.android.gm
+com.google.android.apps.maps
+com.google.android.googlequicksearchbox
+com.google.android.apps.messaging
+com.google.android.gms
+com.android.vending
+com.samsung.android.bixby.agent
+com.samsung.android.bixby.service
+com.samsung.android.app.spage
+com.samsung.android.arzone
+com.samsung.android.aremoji
+com.samsung.android.app.appsedge
+com.samsung.android.app.taskedge
+com.samsung.android.osp.signin
+com.osp.app.signin
+com.samsung.android.scloud
+com.samsung.android.spay
+com.sec.android.app.samsungapps
+com.samsung.android.voc
+com.samsung.android.game.gos
+com.samsung.android.game.gamehome
+com.sec.android.app.sbrowser
+com.sec.android.app.shealth
+com.samsung.android.app.tips
+com.samsung.android.smartsuggestions
+com.samsung.android.rubin.app
+com.samsung.android.mapsagent
+com.samsung.android.app.omcagent
+com.sec.android.app.popupcalculator
+com.samsung.android.lool
+com.sec.android.app.soundalive
+com.facebook.orca
+com.android.stk
+com.android.printspooler
+com.samsung.android.app.updatecenter
+com.samsung.android.app.watchmanager
+com.samsung.android.oneconnect
+com.android.theme.icon.pebble
+com.samsung.android.honeyboard
+com.samsung.android.app.aodservice
+com.samsung.android.app.soundpicker
+com.samsung.android.mtp
+com.samsung.android.wifi.resources
+com.samsung.android.timezone.autoupdate_O
+com.samsung.android.kgclient
+EOF
+    cat > "$STATE/known.txt" <<'EOF'
+com.facebook.orca
+com.samsung.android.app.notes
+com.samsung.android.app.routines
+com.samsung.android.smartswitchassistant
+com.google.android.apps.walletnfcrel
+com.google.android.apps.youtube.music
+com.sec.android.app.voicenote
+com.samsung.android.app.reminder
+com.tmobile.pr.mytmobile
+EOF
+    : > "$STATE/removed.txt"
+    : > "$STATE/disabled.txt"
+    : > "$STATE/settings.txt"
+    # chave que existe em One UI, para exercitar o caminho "aplicar e conferir"
+    printf 'adaptive_battery_management_enabled=0\n' > "$STATE/settings-db.txt"
+}
+
+seed
+
+while [ $# -gt 0 ]; do
+    case "$1" in
+        -s) shift 2 ;;
+        *) break ;;
+    esac
+done
+
+cmd="${1:-}"; shift || true
+
+case "$cmd" in
+    devices)
+        printf 'List of devices attached\nFAKE123\tdevice\n'
+        ;;
+    version)
+        printf 'Android Debug Bridge version 1.0.41\nVersion 37.0.1-fake\n'
+        ;;
+    connect|pair)
+        printf 'connected to %s\n' "${1:-fake}"
+        ;;
+    shell)
+        sub="${1:-}"; shift || true
+        case "$sub" in
+            getprop)
+                case "${1:-}" in
+                    ro.build.version.release) echo "17" ;;
+                    ro.build.version.oneui)   echo "90000" ;;
+                    ro.build.version.sem)     echo "90000" ;;
+                    ro.product.model)         echo "SM-S931B" ;;
+                    ro.product.device)        echo "e1q" ;;
+                    ro.build.PDA)             echo "S931BXXU1CYK1" ;;
+                    *) echo "" ;;
+                esac
+                ;;
+            pm)
+                action="${1:-}"; shift || true
+                case "$action" in
+                    list)
+                        user_flag=0
+                        with_uninstalled=0
+                        only_disabled=0
+                        only_enabled=0
+                        for a in "$@"; do
+                            [ "$a" = "--user" ] && user_flag=1
+                            [ "$a" = "-u" ] && with_uninstalled=1
+                            [ "$a" = "-d" ] && only_disabled=1
+                            [ "$a" = "-e" ] && only_enabled=1
+                        done
+                        if [ "$only_disabled" -eq 1 ]; then
+                            sort -u "$STATE/disabled.txt"
+                        elif [ "$with_uninstalled" -eq 1 ]; then
+                            cat "$STATE/installed.txt" "$STATE/removed.txt" | sort -u
+                        elif [ "$only_enabled" -eq 1 ]; then
+                            sort -u "$STATE/installed.txt"
+                        else
+                            sort -u "$STATE/installed.txt"
+                        fi | sed 's/^/package:/'
+                        ;;
+                    uninstall)
+                        pkg="${!#}"
+                        if grep -Fxq "$pkg" "$STATE/installed.txt"; then
+                            grep -Fxv "$pkg" "$STATE/installed.txt" > "$STATE/tmp" || true
+                            mv "$STATE/tmp" "$STATE/installed.txt"
+                            echo "$pkg" >> "$STATE/removed.txt"
+                            echo "Success"
+                        else
+                            echo "Failure [not installed for 0]"
+                        fi
+                        ;;
+                    disable-user)
+                        pkg="${!#}"
+                        if grep -Fxq "$pkg" "$STATE/installed.txt"; then
+                            grep -Fxv "$pkg" "$STATE/installed.txt" > "$STATE/tmp" || true
+                            mv "$STATE/tmp" "$STATE/installed.txt"
+                            echo "$pkg" >> "$STATE/disabled.txt"
+                            echo "Package $pkg new state: disabled-user"
+                        else
+                            echo "Package $pkg new state: disabled-user"
+                        fi
+                        ;;
+                    enable)
+                        pkg="${!#}"
+                        grep -Fxv "$pkg" "$STATE/disabled.txt" > "$STATE/tmp" || true
+                        mv "$STATE/tmp" "$STATE/disabled.txt"
+                        echo "$pkg" >> "$STATE/installed.txt"
+                        echo "Package $pkg new state: enabled"
+                        ;;
+                    *)
+                        echo "fake pm: ação não simulada: $action"
+                        ;;
+                esac
+                ;;
+            cmd)
+                if [ "${1:-}" = "package" ] && [ "${2:-}" = "help" ]; then
+                    echo "  install-existing [--user USER_ID] PACKAGE"
+                    exit 0
+                fi
+                if [ "${1:-}" = "package" ] && [ "${2:-}" = "install-existing" ]; then
+                    pkg="${!#}"
+                    grep -Fxv "$pkg" "$STATE/removed.txt" > "$STATE/tmp" || true
+                    mv "$STATE/tmp" "$STATE/removed.txt"
+                    echo "$pkg" >> "$STATE/installed.txt"
+                    echo "Package $pkg installed for user: 0"
+                    exit 0
+                fi
+                echo "fake cmd: não simulado"
+                ;;
+            settings)
+                op="${1:-}"; shift || true
+                ns="${1:-}"; shift || true
+                key="${1:-}"; shift || true
+                case "$op" in
+                    get)
+                        val="$(awk -F'=' -v k="$key" '$1==k{sub($1"=",""); print; exit}' "$STATE/settings-db.txt" 2>/dev/null)"
+                        printf '%s\n' "${val:-null}"
+                        ;;
+                    put)
+                        value="${1:-}"
+                        if [ -f "$STATE/settings-db.txt" ]; then
+                            grep -Fv "$key=" "$STATE/settings-db.txt" > "$STATE/tmp" 2>/dev/null || true
+                            mv "$STATE/tmp" "$STATE/settings-db.txt"
+                        fi
+                        printf '%s=%s\n' "$key" "$value" >> "$STATE/settings-db.txt"
+                        printf 'put %s %s %s\n' "$ns" "$key" "$value" >> "$STATE/settings.txt"
+                        ;;
+                    delete)
+                        if [ -f "$STATE/settings-db.txt" ]; then
+                            grep -Fv "$key=" "$STATE/settings-db.txt" > "$STATE/tmp" 2>/dev/null || true
+                            mv "$STATE/tmp" "$STATE/settings-db.txt"
+                        fi
+                        printf 'delete %s %s\n' "$ns" "$key" >> "$STATE/settings.txt"
+                        ;;
+                    list)
+                        cat "$STATE/settings-db.txt" 2>/dev/null || true
+                        ;;
+                    *)
+                        printf 'fake settings: ação não simulada: %s\n' "$op" >&2
+                        ;;
+                esac
+                ;;
+            true)
+                :
+                ;;
+            *)
+                :
+                ;;
+        esac
+        ;;
+    *)
+        printf 'fake adb: comando não simulado: %s\n' "$cmd" >&2
+        exit 1
+        ;;
+esac
