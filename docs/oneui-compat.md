@@ -20,7 +20,7 @@ Referências de versão usadas no desenvolvimento:
 
 ## 1. Detecção de versão
 
-`load_device_info()` em `scamsung` lê, nesta ordem:
+`load_device_info()` em `scamsung-debloat` lê, nesta ordem:
 
 ```bash
 getprop ro.build.version.release    # Android, ex. 17
@@ -94,7 +94,7 @@ de `--only`. Ela cobre:
   `com.sec.unifiedwfc` (Wi-Fi calling / VoLTE);
 - `com.samsung.android.app.aodservice` (AOD e relógio da tela de bloqueio).
 
-`./scamsung self-test` falha se qualquer arquivo em `lists/` contiver um pacote negado —
+`./scamsung-debloat self-test` falha se qualquer arquivo em `lists/` contiver um pacote negado —
 então a deny-list também protege contra edição errada das listas.
 
 ### 2.3 Fallback `uninstall` → `disable`
@@ -117,7 +117,7 @@ Se ambos falharem, o pacote entra em `FAILED`, aparece no resumo e não interrom
 ## 3. O que muda entre One UI 8 e 9
 
 Observado em firmware e em listas públicas (itxjobe — base dos presets —, UAD-ng, Atlas, XDA/Technastic). Isto é
-orientação, não garantia — confirme com `./scamsung apply <preset>` (a prévia é obrigatória).
+orientação, não garantia — confirme com `./scamsung-debloat apply <preset>` (a prévia é obrigatória).
 
 | Área | Mudança relevante | Efeito no script |
 |------|-------------------|------------------|
@@ -150,7 +150,7 @@ Todos rodam sem root, via `adb shell`:
 | `pm list packages -u --user 0` | inclui apps já removidos (histórico) | — |
 | `pm uninstall --user 0 <pkg>` | remove o app **do usuário 0**; APK permanece em `/system` | `cmd package install-existing --user 0 <pkg>` |
 | `pm disable-user --user 0 <pkg>` | desativa o app, preserva dados | `pm enable <pkg>` |
-| `settings put global ...` | `tweaks`: escalas de animação em 0.5x e `wifi_scan_always_enabled=0` | `./scamsung tweaks --reset` (animações); Wi-Fi scan precisa de `./scamsung shell settings put global wifi_scan_always_enabled 1` |
+| `settings put global ...` | `tweaks`: escalas de animação em 0.5x e `wifi_scan_always_enabled=0` | `./scamsung-debloat tweaks --reset` (animações); Wi-Fi scan precisa de `./scamsung-debloat shell settings put global wifi_scan_always_enabled 1` |
 
 Consequências que valem repetir:
 
@@ -164,15 +164,15 @@ Consequências que valem repetir:
 
 ## 5. Depois de uma atualização (OTA)
 
-1. `./scamsung doctor` — confirma modelo, build e versão detectada.
-2. `./scamsung status` — mostra o que este script removeu e ainda está fora.
-3. `./scamsung apply <preset> </dev/null` — a prévia aparece e, sem `sim`, nada é
+1. `./scamsung-debloat doctor` — confirma modelo, build e versão detectada.
+2. `./scamsung-debloat status` — mostra o que este script removeu e ainda está fora.
+3. `./scamsung-debloat apply <preset> </dev/null` — a prévia aparece e, sem `sim`, nada é
    aplicado; veja quantos voltaram como instalados.
-4. `./scamsung apply <preset>` — reaplica só o que voltou.
+4. `./scamsung-debloat apply <preset>` — reaplica só o que voltou.
 5. Se um app voltou com nome novo, adicione ao preset em `lists/` e rode
-   `./scamsung self-test` antes de aplicar.
+   `./scamsung-debloat self-test` antes de aplicar.
 
-Estado e logs ficam em `~/.local/share/scamsung/`:
+Estado e logs ficam em `~/.local/share/scamsung-debloat/`:
 
 ```
 state.tsv                  # pkg<TAB>ação<TAB>data  (fonte do restore)
@@ -180,7 +180,7 @@ tweaks.tsv                 # setting<TAB>valor original (fonte do tweaks --reset
 logs/session-*.tsv         # uma linha por ação, com saída do pm
 ```
 
-`SCSUNG_DATA_DIR` troca esse diretório (útil para testar sem sujar o estado real).
+`SCAMSUNG_DEBLOAT_DATA_DIR` troca esse diretório (útil para testar sem sujar o estado real).
 
 ---
 
@@ -189,11 +189,11 @@ logs/session-*.tsv         # uma linha por ação, com saída do pm
 Ainda pendente neste repositório. Ordem sugerida, do menor risco para o maior:
 
 ```bash
-./scamsung doctor
-./scamsung list
-./scamsung apply basic              # leia a prévia antes de confirmar com "sim"
-./scamsung status
-./scamsung restore                # confirme que tudo volta
+./scamsung-debloat doctor
+./scamsung-debloat list
+./scamsung-debloat apply basic              # leia a prévia antes de confirmar com "sim"
+./scamsung-debloat status
+./scamsung-debloat restore                # confirme que tudo volta
 ```
 
 Depois de cada etapa, teste manualmente:
@@ -207,7 +207,7 @@ Depois de cada etapa, teste manualmente:
 - [ ] notificações de apps não removidos;
 - [ ] reinício e segundo boot sem loop.
 
-Se algo quebrar: `./scamsung restore`. Se o aparelho não bootar, recovery → "Wipe cache
+Se algo quebrar: `./scamsung-debloat restore`. Se o aparelho não bootar, recovery → "Wipe cache
 partition" (não apaga dados) e, em último caso, restaurar padrão de fábrica — nenhuma
 operação aqui altera partições do sistema, então o boot não é perdido por causa de
 `--user 0`.

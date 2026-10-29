@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# scamsung — tira bloatware de Galaxy sem root.
+# scamsung-debloat — tira bloatware de Galaxy sem root.
 #
 # Reescrita do debloat_samsung_android (invinciblevenom), que era .bat, parou na
 # One UI 6.1 e foi arquivado. Esta aqui roda em macOS, Linux e Windows (Git Bash),
@@ -9,17 +9,17 @@
 #   - deny-list embutida: pacotes críticos nunca saem
 #   - se o uninstall falhar no seu firmware, tenta desativar no lugar
 #   - antes de remover qualquer coisa, mostra tudo e pede "sim"
-#   - guarda o que fez e volta atrás com `./scamsung restore`
+#   - guarda o que fez e volta atrás com `./scamsung-debloat restore`
 #   - tweaks do Tweaks.bat original, com verificação e reset exato
 #
 set -o pipefail
 
-APP_NAME="scamsung"
-APP_VERSION="1.5.0"
+APP_NAME="scamsung-debloat"
+APP_VERSION="1.6.0"
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 LISTS_DIR="$ROOT_DIR/lists"
-DATA_DIR="${SCSUNG_DATA_DIR:-$HOME/.local/share/scamsung}"
+DATA_DIR="${SCAMSUNG_DEBLOAT_DATA_DIR:-$HOME/.local/share/scamsung-debloat}"
 STATE_FILE="$DATA_DIR/state.tsv"
 TWEAKS_FILE="$DATA_DIR/tweaks.tsv"
 LOG_DIR="$DATA_DIR/logs"
@@ -76,7 +76,7 @@ cleanup() {
 trap cleanup EXIT INT TERM
 
 init_work_dir() {
-    WORK_DIR="$(mktemp -d "${TMPDIR:-/tmp}/scamsung.XXXXXX")" \
+    WORK_DIR="$(mktemp -d "${TMPDIR:-/tmp}/scamsung-debloat.XXXXXX")" \
         || die "não consegui criar diretório temporário"
 }
 
@@ -94,22 +94,22 @@ usage() {
 ${C_BOLD}$APP_NAME $APP_VERSION${C_RESET} — tira bloatware de Galaxy sem root
 
 USO
-  ./scamsung                    menu interativo
-  ./scamsung doctor             confere adb, aparelho e versão do Android/One UI
-  ./scamsung list               mostra os presets
-  ./scamsung apply <preset>     mostra tudo que vai sair e aplica se você confirmar
-  ./scamsung explain <pacote>   o que é o pacote, em quais presets ele está
-  ./scamsung scan [termo]       pacotes instalados que contêm o termo
-  ./scamsung status             o que você já removeu por aqui
-  ./scamsung restore            volta tudo que este script removeu
-  ./scamsung tweaks             ajustes leves de sistema
-  ./scamsung tweaks --performance   modo agressivo: GOS, RAM Plus, zram, térmico
-  ./scamsung tweaks --status    o que os tweaks mudaram e o valor original
-  ./scamsung tweaks --reset     desfaz só o que este script mudou
-  ./scamsung tweaks --ram-plus off|on
-  ./scamsung apply --only com.facebook.katana
-  ./scamsung wireless           pareia por Wi-Fi em vez de cabo
-  ./scamsung self-test          valida os presets (não precisa de aparelho)
+  ./scamsung-debloat                    menu interativo
+  ./scamsung-debloat doctor             confere adb, aparelho e versão do Android/One UI
+  ./scamsung-debloat list               mostra os presets
+  ./scamsung-debloat apply <preset>     mostra tudo que vai sair e aplica se você confirmar
+  ./scamsung-debloat explain <pacote>   o que é o pacote, em quais presets ele está
+  ./scamsung-debloat scan [termo]       pacotes instalados que contêm o termo
+  ./scamsung-debloat status             o que você já removeu por aqui
+  ./scamsung-debloat restore            volta tudo que este script removeu
+  ./scamsung-debloat tweaks             ajustes leves de sistema
+  ./scamsung-debloat tweaks --performance   modo agressivo: GOS, RAM Plus, zram, térmico
+  ./scamsung-debloat tweaks --status    o que os tweaks mudaram e o valor original
+  ./scamsung-debloat tweaks --reset     desfaz só o que este script mudou
+  ./scamsung-debloat tweaks --ram-plus off|on
+  ./scamsung-debloat apply --only com.facebook.katana
+  ./scamsung-debloat wireless           pareia por Wi-Fi em vez de cabo
+  ./scamsung-debloat self-test          valida os presets (não precisa de aparelho)
 
 OPÇÕES
   -y, --yes            pula a perguntinha (a prévia aparece de qualquer jeito)
@@ -122,7 +122,7 @@ OPÇÕES
 
 AMBIENTE
   ANDROID_SERIAL       mesma coisa que --serial
-  SCSUNG_DATA_DIR      onde ficam estado e logs (padrão: ~/.local/share/scamsung)
+  SCAMSUNG_DEBLOAT_DATA_DIR      onde ficam estado e logs (padrão: ~/.local/share/scamsung-debloat)
   NO_COLOR=1           sem cores
 EOF
 }
@@ -238,7 +238,7 @@ select_device() {
         say "  4. Conecte o cabo e aceite 'Permitir depuração USB?' no celular"
         say "  5. No Mac, se aparecer o Android File Transfer, pode fechar"
         say ""
-        say "Sem cabo? Rode: ./scamsung wireless"
+        say "Sem cabo? Rode: ./scamsung-debloat wireless"
         exit 1
     fi
 
@@ -650,7 +650,7 @@ cmd_apply() {
 
     if [ "$ASSUME_YES" -ne 1 ]; then
         say ""
-        say "Isso remove apps do seu usuário. Dá para reverter com: ./scamsung restore"
+        say "Isso remove apps do seu usuário. Dá para reverter com: ./scamsung-debloat restore"
         printf 'Digite %ssim%s para continuar: ' "$C_BOLD" "$C_RESET"
         read -r answer
         case "$answer" in
@@ -678,7 +678,7 @@ cmd_apply() {
     if [ $((REMOVED + DISABLED)) -gt 0 ]; then
         say ""
         say "Log: $SESSION_LOG"
-        say "Reverter: ./scamsung restore"
+        say "Reverter: ./scamsung-debloat restore"
         say "Recomendado reiniciar o aparelho depois de aplicar."
     fi
 }
@@ -791,7 +791,7 @@ cmd_status() {
         say "  ${C_YELLOW}pendentes de restore:${C_RESET} $(grep -c . "$STATE_FILE" | tr -d ' ')"
         awk -F'\t' '{printf "    %-9s %s\n", $1, $2}' "$STATE_FILE"
         say ""
-        say "  ./scamsung restore   para voltar tudo"
+        say "  ./scamsung-debloat restore   para voltar tudo"
     else
         ok "  nenhum pacote removido por este script."
     fi
@@ -866,7 +866,7 @@ cmd_list() {
         printf '  %-6s %3s pacotes  %s\n' "$(basename "$f" .txt)" "$count" "$desc"
     done
     say ""
-    dim "  ./scamsung apply <preset>  |  ./scamsung explain <pacote>"
+    dim "  ./scamsung-debloat apply <preset>  |  ./scamsung-debloat explain <pacote>"
 }
 
 cmd_scan() {
@@ -908,8 +908,8 @@ cmd_scan() {
 cmd_explain() {
     local pkg="${1:-}" f preset line label="" found=0 presets="" action o canon
     if [ -z "$pkg" ]; then
-        err "uso: ./scamsung explain <pacote>"
-        say "  exemplo: ./scamsung explain com.facebook.katana"
+        err "uso: ./scamsung-debloat explain <pacote>"
+        say "  exemplo: ./scamsung-debloat explain com.facebook.katana"
         return 1
     fi
     pkg="$(printf '%s' "$pkg" | sed 's/^package://')"
@@ -951,14 +951,14 @@ cmd_explain() {
     if [ -f "$STATE_FILE" ]; then
         action="$(awk -F'\t' -v p="$pkg" '$2==p{print $1; exit}' "$STATE_FILE" 2>/dev/null)"
         if [ -n "$action" ]; then
-            printf '  estado    : %s (desfazer: ./scamsung restore)\n' "$action"
+            printf '  estado    : %s (desfazer: ./scamsung-debloat restore)\n' "$action"
         fi
     fi
 
     if [ "$found" -eq 0 ] && ! is_denied "$pkg"; then
         say ""
         dim "  Não listado = o script não toca nele. Se for bloat do seu firmware,"
-        dim "  adicione ao preset em lists/ e rode ./scamsung self-test."
+        dim "  adicione ao preset em lists/ e rode ./scamsung-debloat self-test."
     fi
     say ""
     return 0
@@ -1176,7 +1176,7 @@ cmd_tweaks_status() {
         else             printf "  setting %-38s original: %s\n", $1, ($2 == "" ? "(null)" : $2)
     }' "$TWEAKS_FILE"
     say ""
-    dim "  reverter todos: ./scamsung tweaks --reset"
+    dim "  reverter todos: ./scamsung-debloat tweaks --reset"
 }
 
 cmd_tweaks_reset() {
@@ -1185,7 +1185,7 @@ cmd_tweaks_reset() {
         ok "  nada para reverter (nenhum ajuste registrado)."
         say ""
         dim "  Se você aplicou o Tweaks.bat antigo, use:"
-        dim "    ./scamsung tweaks --defaults"
+        dim "    ./scamsung-debloat tweaks --defaults"
         return 0
     fi
 
@@ -1257,8 +1257,8 @@ cmd_tweaks_apply() {
     else
         say "  alterados: $TW_CHANGED | já estavam: $TW_SAME | ignorados: $TW_IGNORED | pulados: $TW_SKIPPED"
         say ""
-        dim "  reverter: ./scamsung tweaks --reset"
-        dim "  ver o que foi mudado: ./scamsung tweaks --status"
+        dim "  reverter: ./scamsung-debloat tweaks --reset"
+        dim "  ver o que foi mudado: ./scamsung-debloat tweaks --status"
     fi
 }
 
@@ -1319,7 +1319,7 @@ cmd_tweaks_ram_plus() {
             tweak_clear ram_expand_size
             ;;
         *)
-            err "uso: ./scamsung tweaks --ram-plus off|on"
+            err "uso: ./scamsung-debloat tweaks --ram-plus off|on"
             return 1
             ;;
     esac
@@ -1368,11 +1368,11 @@ cmd_tweaks() {
         *)
             err "não conheço esse modo de tweaks: $sub"
             say ""
-            say "  ./scamsung tweaks                 conjunto leve (animações, bateria, varredura)"
-            say "  ./scamsung tweaks --performance   GOS off, RAM Plus/zram off, térmico de jogos off"
-            say "  ./scamsung tweaks --status        o que já foi mudado e o valor original"
-            say "  ./scamsung tweaks --reset         devolve exatamente o que este script mudou"
-            say "  ./scamsung tweaks --ram-plus off  liga/desliga só a RAM Plus"
+            say "  ./scamsung-debloat tweaks                 conjunto leve (animações, bateria, varredura)"
+            say "  ./scamsung-debloat tweaks --performance   GOS off, RAM Plus/zram off, térmico de jogos off"
+            say "  ./scamsung-debloat tweaks --status        o que já foi mudado e o valor original"
+            say "  ./scamsung-debloat tweaks --reset         devolve exatamente o que este script mudou"
+            say "  ./scamsung-debloat tweaks --ram-plus off  liga/desliga só a RAM Plus"
             return 1
             ;;
     esac
@@ -1499,7 +1499,7 @@ EOF
         ok "presets ok"
         return 0
     fi
-    err "$errors erro(s), $warnings aviso(s) — corrija e rode ./scamsung self-test de novo"
+    err "$errors erro(s), $warnings aviso(s) — corrija e rode ./scamsung-debloat self-test de novo"
     return 1
 }
 
@@ -1593,7 +1593,7 @@ while [ $# -gt 0 ]; do
         -q|--quiet)   QUIET=1; shift ;;
         -h|--help)    usage; exit 0 ;;
         --)           shift; break ;;
-        --categories) err "--categories não existe mais: use ./scamsung apply <preset>"; exit 1 ;;
+        --categories) err "--categories não existe mais: use ./scamsung-debloat apply <preset>"; exit 1 ;;
         -*)           err "opção desconhecida: $1"; usage; exit 1 ;;
         *)            break ;;
     esac
@@ -1613,7 +1613,7 @@ if [ "$CMD" = "apply" ]; then
             --only)       [ $# -ge 2 ] || die "--only precisa de argumento"; ONLY="$2"; shift 2 ;;
                 -v|--verbose) VERBOSE=1; shift ;;
             -q|--quiet)   QUIET=1; shift ;;
-            --categories) err "--categories não existe mais: use ./scamsung apply <preset>"; exit 1 ;;
+            --categories) err "--categories não existe mais: use ./scamsung-debloat apply <preset>"; exit 1 ;;
             -*)           err "opção desconhecida: $1"; exit 1 ;;
             *)            ARGS="$ARGS $1"; shift ;;
         esac

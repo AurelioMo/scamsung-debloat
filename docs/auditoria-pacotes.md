@@ -140,9 +140,9 @@ em `samsung-ecosystem` — só sai no `light`/`heavy`.
 ## 7. Como reconferir depois de uma atualização
 
 ```bash
-./scamsung self-test     # valida nomes, deny-list, duplicatas e presets
-./scamsung apply heavy </dev/null   # vê a prévia sem aplicar (sem digitar "sim")
-./scamsung scan <termo>  # confirma o que existe no seu firmware
+./scamsung-debloat self-test     # valida nomes, deny-list, duplicatas e presets
+./scamsung-debloat apply heavy </dev/null   # vê a prévia sem aplicar (sem digitar "sim")
+./scamsung-debloat scan <termo>  # confirma o que existe no seu firmware
 ```
 
 Para reauditar contra o UAD-ng:

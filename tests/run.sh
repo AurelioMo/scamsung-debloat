@@ -5,13 +5,13 @@ set -u
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 export PATH="$ROOT/tests:$PATH"
 export FAKE_ADB_STATE="$(mktemp -d "${TMPDIR:-/tmp}/fake-adb.XXXXXX")"
-export SCSUNG_DATA_DIR="$(mktemp -d "${TMPDIR:-/tmp}/scamsung-data.XXXXXX")"
+export SCAMSUNG_DEBLOAT_DATA_DIR="$(mktemp -d "${TMPDIR:-/tmp}/scamsung-debloat-data.XXXXXX")"
 export NO_COLOR=1
 
 FAILS=0
 CHECKS=0
 
-sc() { /bin/bash "$ROOT/scamsung" "$@"; }
+sc() { /bin/bash "$ROOT/scamsung-debloat" "$@"; }
 
 pass() { CHECKS=$((CHECKS + 1)); printf '  ok   %s\n' "$1"; }
 fail() { CHECKS=$((CHECKS + 1)); FAILS=$((FAILS + 1)); printf '  FAIL %s\n' "$1"; }
@@ -76,7 +76,7 @@ out="$(sc --only com.facebook.katana apply </dev/null 2>&1)"
 assert_contains "prévia marca o pacote" "$out" "~ com.facebook.katana  — Facebook"
 assert_contains "prévia conta pacotes" "$out" "remover:"
 assert_contains "pede confirmação" "$out" "Digite"
-if [ -f "$SCSUNG_DATA_DIR/state.tsv" ]; then
+if [ -f "$SCAMSUNG_DEBLOAT_DATA_DIR/state.tsv" ]; then
     fail "sem 'sim' não deveria gravar estado"
 else
     pass "sem 'sim' não grava estado"
@@ -88,7 +88,7 @@ out="$(sc -y apply --only com.samsung.android.rubin.app 2>&1)"
 assert_contains "remove rubin.app" "$out" "+ com.samsung.android.rubin.app"
 assert_contains "apply mostra o que é o pacote" "$out" "Customization Service (perfil de personalização)"
 assert_file_has "rubin.app saiu do aparelho" "$FAKE_ADB_STATE/removed.txt" "com.samsung.android.rubin.app"
-assert_contains "estado registrado" "$(cat "$SCSUNG_DATA_DIR/state.tsv" 2>/dev/null)" "REMOVED"
+assert_contains "estado registrado" "$(cat "$SCAMSUNG_DEBLOAT_DATA_DIR/state.tsv" 2>/dev/null)" "REMOVED"
 
 printf '\n== apply basic ==\n'
 out="$(sc -y apply basic 2>&1)"
@@ -120,8 +120,8 @@ assert_contains "inexistente não aplica nada" "$out" "nada a fazer"
 
 printf '\n== restore ==\n'
 sc -y restore >/dev/null 2>&1
-if [ -s "$SCSUNG_DATA_DIR/state.tsv" ]; then
-    fail "estado deveria estar vazio após restore ($(wc -l < "$SCSUNG_DATA_DIR/state.tsv") linhas)"
+if [ -s "$SCAMSUNG_DEBLOAT_DATA_DIR/state.tsv" ]; then
+    fail "estado deveria estar vazio após restore ($(wc -l < "$SCAMSUNG_DEBLOAT_DATA_DIR/state.tsv") linhas)"
 else
     pass "estado vazio após restore"
 fi
@@ -133,7 +133,7 @@ printf '\n== modo disable + restore ==\n'
 out="$(sc -y --disable --only com.samsung.android.game.gos apply 2>&1)"
 assert_contains "gos desativado" "$out" "(desativado)"
 assert_file_has "gos em disabled" "$FAKE_ADB_STATE/disabled.txt" "com.samsung.android.game.gos"
-assert_contains "estado DISABLED" "$(cat "$SCSUNG_DATA_DIR/state.tsv" 2>/dev/null)" "DISABLED"
+assert_contains "estado DISABLED" "$(cat "$SCAMSUNG_DEBLOAT_DATA_DIR/state.tsv" 2>/dev/null)" "DISABLED"
 sc -y restore >/dev/null 2>&1
 assert_file_lacks "gos reativado" "$FAKE_ADB_STATE/disabled.txt" "com.samsung.android.game.gos"
 assert_file_has "gos de volta em installed" "$FAKE_ADB_STATE/installed.txt" "com.samsung.android.game.gos"
@@ -159,7 +159,7 @@ assert_contains "chave ausente é pulada" "$out" "não existe neste firmware"
 assert_contains "resumo conta pulados" "$out" "pulados:"
 assert_contains "animação 0.5x" "$(cat "$FAKE_ADB_STATE/settings.txt" 2>/dev/null)" "window_animation_scale 0.5"
 assert_contains "bateria adaptativa ligada" "$(cat "$FAKE_ADB_STATE/settings.txt" 2>/dev/null)" "adaptive_battery_management_enabled 1"
-assert_contains "registro guarda original" "$(cat "$SCSUNG_DATA_DIR/tweaks.tsv" 2>/dev/null)" "window_animation_scale"
+assert_contains "registro guarda original" "$(cat "$SCAMSUNG_DEBLOAT_DATA_DIR/tweaks.tsv" 2>/dev/null)" "window_animation_scale"
 out="$(sc tweaks --status 2>&1)"
 assert_contains "status lista o ajuste" "$out" "window_animation_scale"
 

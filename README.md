@@ -1,227 +1,234 @@
-# scamsung
+# scamsung-debloat
 
-Limpar o Galaxy sem root, sem dor de cabeça e sem quebrar o básico.
-
-Isto é uma reescrita do
+Remove Samsung bloatware **without root** on One UI 8/9 — macOS, Linux and Windows.
+A modern rewrite of the archived
 [debloat_samsung_android](https://github.com/invinciblevenom/debloat_samsung_android),
-que era um `.bat` de Windows, ficou parado na One UI 6.1 e foi arquivado com aviso
-para não usar depois de janeiro de 2025. Mantive a ideia, atualizei as listas para a
-One UI 8/9 e adicionei as proteções que faltavam: antes de remover o que quer que
-seja, o script mostra tudo e espera um `sim`.
+with presets based on
+[itxjobe/samsungdebloat](https://github.com/itxjobe/samsungdebloat).
 
-Nada de root. Tudo é `adb shell pm ... --user 0`, ou seja, esconde o app do seu
-perfil — dá para voltar atrás com `./scamsung restore`.
+**No terminal skills needed: double-click the file, pick numbers from a menu.**
 
-## O que ele faz, em resumo
+---
 
-- três presets com explicação em cada pacote: **basic** (51), **light** (98) e **heavy** (126);
-- antes de aplicar, você vê linha por linha o que sai e o que é cada pacote;
-- uma deny-list protege o que não pode sair (Play Store, telefone, teclado, IMS/VoLTE...);
-- se o firmware novo renomeou um pacote, ele simplesmente é ignorado — não tem erro
-  bobo de `Failure [not installed for 0]`;
-- se a desinstalação falhar, ele tenta desativar o app no lugar;
-- guarda tudo que fez e volta atrás quando você pedir;
-- e o famoso `Tweaks.bat` virou `./scamsung tweaks`, agora com verificação e reset exato.
+## ⚠️ Read this first — always
 
-## Requisitos
+> **Debloating is reversible here, but it is never risk-free.**
+>
+> - Everything this tool does runs through `adb shell pm ... --user 0`: apps are
+>   removed from your user profile, not from `/system`. Root is never touched,
+>   Knox does not trip, warranty and Play Integrity stay intact.
+> - **Before anything is removed, you always see the full list** and must type
+>   `sim` to continue. No surprises.
+> - Removed apps can come back after a **Samsung OTA update**. That's normal —
+>   just run it again.
+> - Third-party apps that depend on Samsung services (Samsung pay plugins, watch
+>   faces, Galaxy Store content) **can break** when their dependency is removed.
+>   Read the preset lines; each one explains what stops working.
+> - Nothing here was tested on **your** device. It was validated against a fake
+>   adb simulating a Galaxy (see `tests/`). You are the final preview.
+> - You are responsible for what you confirm. When in doubt, remove less.
 
-- `adb` (platform-tools) — o script procura sozinho em PATH, Homebrew, `/usr/bin`,
-  snap e Android SDK;
-- Bash 3.2+ (o que já vem no macOS; no Linux e no Git Bash idem);
-- Depuração USB ligada no Galaxy.
+---
 
-| Sistema | Como rodar | Instalando o adb |
-|---------|-----------|------------------|
-| macOS | `./scamsung ...` | `brew install --cask android-platform-tools` |
-| Linux | `./scamsung ...` | `sudo apt install android-tools-adb` (Debian/Ubuntu), `sudo dnf install android-tools` (Fedora), `sudo pacman -S android-tools` (Arch) |
-| Windows | `scamsung.cmd ...` ou `scamsung.ps1 ...` | `winget install --id Google.PlatformTools -e` e `winget install --id Git.Git -e` |
+## Requirements
 
-No Windows o arquivo principal é o mesmo script; os `.cmd`/`.ps1` só acham o
-`bash.exe` do Git for Windows e repassam os argumentos. WSL também funciona —
-rode `./scamsung` de dentro dele. Não precisa de Admin.
+| | What you need |
+|---|---|
+| Phone | Any Samsung Galaxy on One UI 8/9 (Android 16/17). Older versions work, newer ones trigger a warning first |
+| Computer | `adb` (platform-tools) installed and either macOS, Linux, or Windows with [Git for Windows](https://git-scm.com/download/win) |
+| Cable | USB, or Wi-Fi for wireless pairing (menu option 7) |
 
-## Começando
+Install adb once:
 
-No celular:
+- **macOS:** `brew install --cask android-platform-tools`
+- **Windows:** `winget install --id Google.PlatformTools -e`
+- **Linux:** `sudo apt install android-tools-adb` (Debian/Ubuntu), `sudo dnf install android-tools` (Fedora), `sudo pacman -S android-tools` (Arch)
 
-1. Configurações → Sobre o telefone → Informações do software
-2. Toque 7× em **Número da versão**
-3. Opções do desenvolvedor → **Depuração USB**
-4. Conecte o cabo e aceite **Permitir depuração USB?**
+Prepare the phone once:
 
-Depois:
+1. **Settings → About phone → Software information**
+2. Tap **Build number** 7 times → Developer options unlocked
+3. **Settings → Developer options → USB debugging** → ON
+4. Plug the cable and tap **Allow** on the phone's prompt
 
-```bash
-chmod +x scamsung
-./scamsung doctor     # confere host, adb, aparelho e versão do Android/One UI
-./scamsung list       # os presets
-./scamsung explain com.facebook.katana
-./scamsung apply basic
+## Getting started — two clicks, no typing
+
+1. Download/clone this repo.
+2. Double-click:
+   - **Windows:** `scamsung-debloat.cmd`
+   - **macOS:** `scamsung-debloat` (first time only: right-click → Open, then Open again)
+   - **Linux:** `scamsung-debloat` → choose *Run in Terminal* when asked
+     (if nothing happens, the file needs its executable bit: right-click → Properties → "Allow executing file as program")
+3. A numbered menu appears. **Type a number, press Enter.** That's the whole interface:
+
+```
+scamsung-debloat 1.6.0
+  1) Diagnóstico do aparelho        ← check adb + phone + One UI version (start here)
+  2) Aplicar preset                 ← pick basic / light / heavy, see preview, confirm
+  3) Ver o que você já removeu      ← everything this tool ever removed
+  4) Restaurar tudo                 ← undo everything this tool did
+  5) Tweaks (GOS, RAM Plus...)      ← performance options, each explained in place
+  6) Ver pacotes instalados         ← search what's on the phone
+  7) Parear por Wi-Fi               ← drop the cable
+  8) Sair
 ```
 
-Sem cabo, `./scamsung wireless` guia o pareamento pela depuração sem fio.
+> The menu speaks Portuguese; this README documents the same flow in English.
+> Every destructive path shows a preview and asks for confirmation in the phone's
+> own pace — invalid input never applies anything.
+
+Recommended first run: **1** (diagnostics) → **2** → `basic` → read the preview →
+type `sim`. You can stop at any point before the `sim` and nothing happens.
 
 ## Presets
 
-Três arquivos em `lists/`, cada um autocontido. Cada linha é um pacote seguido da
-explicação do que ele é e do que você perde:
+Each preset is a plain text file in `lists/` — one package per line, each with a
+plain-language explanation of what it is and what you lose. Presets nest:
+`heavy` ⊃ `light` ⊃ `basic`.
 
-| Preset | Pacotes | O que remove | Para quem |
-|--------|--------:|--------------|-----------|
-| `basic` | 51 | só apps de usuário: Facebook/Netflix/Booking, apps Samsung duplicados (Notes, Agenda, Relógio, Calculadora, SMS, Internet, Health, Free, Members), Game Launcher, AR Emoji | todo mundo; não toca em sistema nenhum, conta Samsung e Wallet ficam |
-| `light` | 98 | tudo do basic + Chrome, Gmail, 'Ok Google', Android Auto, temas, Samsung Pass, Wallet, Smart Switch, Bixby (escuta/Vision), Find My Mobile | quem já trocou os apps Samsung pelos do Google |
-| `heavy` | 126 | tudo do light + YouTube, Maps, Gemini, Docs/Sheets/Slides, impressão, SmartThings, Interpreter, Email Samsung | máximo que ainda é reversível |
+| Preset | Packages | What goes away | Risk |
+|--------|---------:|----------------|------|
+| `basic` | 51 | Preinstalled junk only: Facebook/Netflix/Booking/Amazon, duplicate Samsung user apps (Notes, Calendar, Clock, Calculator, Messages, Internet, Health, Free, Members), Game Launcher, AR Emoji/Zone | **Low.** No system component is touched; Samsung account, Wallet and Galaxy AI stay. Worst case: an app you liked is gone — restore brings it back |
+| `light` | 98 | Everything in `basic`, plus: Chrome, Gmail, "Ok Google", Android Auto, Galaxy Themes, Samsung Pass, Wallet, Smart Switch, Bixby wakeup/Vision, Find My Mobile | **Medium.** You lose Samsung payments and Find My Mobile. Only pick this if you already replaced those with Google/third-party apps |
+| `heavy` | 126 | Everything in `light`, plus: YouTube, Maps, Gemini, Docs/Sheets/Slides, printing stack, SmartThings, Interpreter, Samsung Email | **Medium-high.** Maximum that is still reversible. Have replacements installed first |
 
-O `apply` começa pela prévia — sempre, com `-n` ou sem:
+What never gets removed, in any preset: Play Store/Services, SystemUI, Settings,
+One UI launcher, phone/dialer, IMS/VoLTE/Wi-Fi calling, Samsung keyboard, setup
+wizard, and anything else on the built-in **deny-list**. The tool also *skips*
+any package that isn't actually installed on your device instead of erroring out.
+
+## What applying a preset looks like
+
+Option **2** always starts with the preview — there is no way to skip it:
 
 ```
   ~ com.facebook.katana  — Facebook
-  ~ com.android.printspooler  — impressão do Android: só remova se você nunca imprime
+  ~ com.sec.android.app.sbrowser  — Samsung Internet (navegador)
+  ...
 
-  remover:              97
-  já removidos antes:   3
-  ausentes no aparelho: 13 (ignorados)
+  remover:              47
+  já removidos antes:   2
+  ausentes no aparelho: 2 (ignorados)
 
 Digite sim para continuar:
 ```
 
-Sem o `sim`, nada sai do aparelho. `-y` pula a pergunta, mas a prévia continua no ar.
+Each package prints with its explanation. Only after you type `sim` does anything
+leave the phone. Uninstall failures automatically fall back to *disabling* the
+app instead (data preserved).
 
-Também dá para apontar direto:
+## Tweaks (menu option 5)
+
+All tweaks record their original value and are exactly reversible with `r`:
+
+| Option | What it does | The honest trade-off |
+|--------|--------------|----------------------|
+| `p` **performance** (default) | Disables GOS (Samsung's game throttling), turns off RAM Plus + zram, animations at 0.35x, disables in-game thermal control | More heat under load; multitasking may reload apps more; GOS play statistics are wiped (`pm clear`) |
+| `a` **light** | Animations at 0.5x, background app freezer, adaptive battery ON, less background Wi-Fi/Bluetooth scanning | Slightly worse network-based location accuracy |
+| `s` **status** | Shows every tweak this tool changed and the original value | — |
+| `r` **reset** | Restores exactly what **this tool** changed, re-enables GOS | — |
+
+Settings that don't exist on your firmware are skipped with a warning, never invented.
+
+## Restoring
+
+- **Everything:** menu option **4** (`restaurar tudo`).
+- **One app, by hand:** `adb shell cmd package install-existing <package>` or
+  `adb shell pm enable <package>` if it was disabled.
+- Full log of every action: `~/.local/share/scamsung-debloat/`
+  (`state.tsv`, `tweaks.tsv`, `logs/session-*.tsv`).
+
+## What this tool does NOT do
+
+- ❌ No root, no bootloader, no custom recovery — ever.
+- ❌ Doesn't flash, wipe, or modify `/system`; storage space isn't freed (APKs
+  stay in the system partition — the win is RAM, battery, privacy, and an empty
+  app drawer).
+- ❌ Doesn't block OTA updates or guarantee a reinstalled app stays gone.
+- ❌ Doesn't promise better benchmark scores. It removes apps you don't want;
+  performance gains are a side effect, not the contract.
+
+## Safety design
+
+1. **Deny-list first:** critical packages can't even be typed in by hand.
+2. **Device-filtered:** only what exists on *your* phone is touched — new firmware
+   with renamed packages degrades to "left some bloat behind", never to breakage.
+3. **Preview is mandatory:** the removal list is always shown; confirmation is
+   always required.
+4. **Fallback:** uninstall fails ⇒ app is disabled instead.
+5. **Undo:** every action is logged and `Restaurar tudo` reverts it.
+
+---
+
+<details>
+<summary><b>Advanced: non-interactive CLI flags</b> (optional — the numbered menu above covers normal use)</summary>
+
+For scripting or repeat runs, the same operations exist as flags:
 
 ```bash
-./scamsung apply --only com.facebook.katana
-./scamsung --skip com.samsung.android.app.watchmanager apply light
+./scamsung-debloat doctor            # diagnostics
+./scamsung-debloat list              # show presets
+./scamsung-debloat apply basic       # preview → type "sim" → apply
+./scamsung-debloat apply --only com.facebook.katana
+./scamsung-debloat explain <package> # what is this package, which presets have it
+./scamsung-debloat scan [term]       # installed packages containing <term>
+./scamsung-debloat status            # what this tool already removed
+./scamsung-debloat restore           # undo everything
+./scamsung-debloat tweaks [--performance|--status|--reset|--ram-plus off|on]
+./scamsung-debloat wireless          # pair over Wi-Fi
+./scamsung-debloat self-test         # validate presets (no phone needed)
+
+# options:
+#   -y, --yes        skip the typing (the preview is still always shown)
+#       --disable    disable instead of uninstall (keeps app data)
+#       --skip a,b   skip these packages
+#       --serial S   pick device when several are connected
+#   -v / -q          verbose / quiet
 ```
 
-## Tweaks (o antigo `Tweaks.bat`)
+Environment: `ANDROID_SERIAL` (same as `--serial`),
+`SCAMSUNG_DEBLOAT_DATA_DIR` (state/logs location), `NO_COLOR=1`.
 
-```bash
-./scamsung tweaks                 # conjunto leve
-./scamsung tweaks --performance   # o modo agressivo do .bat original
-./scamsung tweaks --status        # o que mudou e qual era o valor original
-./scamsung tweaks --reset         # desfaz exatamente o que ESTE script mudou
-./scamsung tweaks --ram-plus off|on
-```
+</details>
 
-O conjunto leve: animações a `0.5x`, freezer de apps em background, bateria
-adaptativa ligada, menos varredura de Wi-Fi/Bluetooth.
+## Tests
 
-O `--performance` é o miolo do `.bat`:
-
-| Ação | Efeito |
-|------|--------|
-| animações a `0.35` | valor do .bat original |
-| `com.samsung.android.game.gos` desativado + `pm clear` | jogos param de ser limitados; estatísticas de jogo são apagadas |
-| `ram_expand_size 0` | RAM Plus desligada |
-| `zram_enabled 0` | sem compressão de memória, se a chave existir |
-| `game_auto_temperature_control 0` | sem controle térmico em jogos |
-
-O preço de letra miúda: mais calor em sessões longas e, em aparelhos com pouca
-RAM, apps sendo reabertos com mais frequência. Chave que não existe no seu
-firmware é pulada com aviso, não inventada. O `--reset` devolve os settings e ainda
-reativa o GOS.
-
-## Segurança
-
-O que o script garante:
-
-- só age no que está instalado no **seu** aparelho — lista desatualizada não quebra nada;
-- deny-list embutida cobre Play Services/Store, WebView, SystemUI, Configurações,
-  One UI Home, telefone/dialer, IMS/VoLTE/Wi-Fi calling, teclado Samsung, Wi-Fi,
-  timezone, `com.samsung.android.kgclient` (trava o aparelho com overlay),
-  AOD, MTP e afins;
-- desinstalação falhou? cai para `pm disable-user`;
-- cada ação fica em `~/.local/share/scamsung/state.tsv` e em `logs/session-*.tsv`;
-- `./scamsung restore` reinstala (`cmd package install-existing`) e reativa (`pm enable`).
-
-O que ele **não** faz:
-
-- não toca em `/system`, não precisa de root, não mexe em Knox nem Play Integrity;
-- não apaga dados de usuário além do app que saiu;
-- não libera espaço de verdade: `pm uninstall --user 0` esconde o app, o APK segue
-  em `/system`. O ganho é RAM, bateria, privacidade e gaveta de apps vazia.
-
-Avisos que importam:
-
-- `basic` tira apps Samsung que parecem essenciais — Notes, Agenda, Relógio,
-  Calculadora, SMS, Internet e Health. Se você usa algum deles, anote o pacote e
-  passe `--skip` (ou veja com `./scamsung explain <pacote>` antes).
-- `light` tira Wallet, Samsung Pass, Find My Mobile, Smart Switch e os temas do
-  Galaxy Themes. Pagamento por aproximação e a busca do aparelho morrem junto.
-- `heavy` tira YouTube, Maps, Gemini, Docs/Sheets/Slides e toda a pilha de
-  impressão. Tenha substitutos instalados.
-- OTA da Samsung pode reinstalar apps. Depois de atualizar, rode `status` e `apply`
-  de novo.
-- Reverter tudo: `./scamsung restore`. À mão, um pacote específico:
-  `adb shell cmd package install-existing <pacote>` ou `adb shell pm enable <pacote>`.
-
-## O que mudou em relação ao original
-
-O `.bat` rodava `pm uninstall --user 0` em ~100–330 pacotes fixos, sem checar nada.
-Em firmware novo isso produz desde erro inofensivo até coisa quebrada (o próprio
-projeto removeu `com.android.cellbroadcastreceiver`, `kgclient`, `soundpicker`...).
-
-1. Multiplataforma de verdade: bash 3.2, detecção de adb em Homebrew/apt/snap/
-   Android SDK/winget, wrappers `.cmd`/`.ps1`, pareamento por Wi-Fi, tratamento de
-   `unauthorized`/`offline`, sem `pause` nem `kill-server`.
-2. One UI 8/9: lê `ro.build.version.oneui` e avisa em versões futuras; lista
-   filtrada pelo que está instalado; fallback para disable; deny-list com o que o
-   original removia e hoje dá problema.
-3. Listas base do [itxjobe/samsungdebloat](https://github.com/itxjobe/samsungdebloat),
-   testadas pelo autor no próprio Galaxy com One UI 8/8.5/9 — não só no papel.
-   O que o projeto original removia e hoje dá problema (setup wizard, wsomacp,
-   Gallery3d...) ficou de fora mesmo aparecendo nas listas de origem.
-4. Presets auto-explicativos: cada pacote com comentário em pt-BR; `explain` mostra
-   o que é, em quais presets está e o estado atual.
-5. Prévia obrigatória, confirmação, log de sessão e restore exato.
-6. Tweaks com verificação de cada setting e reset exato.
-7. Auditoria cruzada com UAD-ng, Atlas, itxjobe, Willie169, Tom4tot e
-   OutrageousStorm: 16 pacotes de risco fora, 19 seguros dentro. Detalhes em
-   [`docs/auditoria-pacotes.md`](docs/auditoria-pacotes.md).
-
-As listas têm como base o [itxjobe/samsungdebloat](https://github.com/itxjobe/samsungdebloat)
-(níveis 1, 2, 'opcionais' e 'One UI 8'), cruzadas com o
-[UAD-ng](https://github.com/Universal-Debloater-Alliance/universal-android-debloater-next-generation)
-e filtradas pela deny-list. Validadas com um `adb` falso que finge um Galaxy
-(Android 17 / One UI 9) e com a prévia obrigatória como rede de segurança —
-nunca teste cego em aparelho real.
-
-## Testes
-
-Sem aparelho, com um `adb` falso que finge um Galaxy One UI 9:
+The suite runs against a **fake adb** that simulates a Galaxy on One UI 9 — no
+phone required, and no real device is ever touched by the tests:
 
 ```bash
 bash tests/run.sh
 ```
 
-Cobre self-test, doctor, scan, prévia, apply, deny-list, pacote inexistente,
-restore, modo disable, `--skip`, presets e tweaks (idempotência, status, reset,
-`--performance`, `--ram-plus`).
+65 checks: self-test, doctor, scan, mandatory preview, apply, deny-list,
+nonexistent packages, restore, disable mode, `--skip`, presets, and every tweak
+path (idempotence, status, exact reset, `--performance`, `--ram-plus`).
 
-## Estrutura
+## Project structure
 
 ```
-scamsung            # a CLI
-scamsung.cmd        # atalho Windows (cmd.exe)
-scamsung.ps1        # atalho Windows (PowerShell)
-lists/basic.txt     # preset básico (51 pacotes, cada um com explicação)
-lists/light.txt     # preset intermediário (98)
-lists/heavy.txt     # preset agressivo (126)
-lists/README.md     # formato dos presets
-tests/adb           # adb falso
-tests/run.sh        # suíte de fumaça
-docs/oneui-compat.md        # notas de compatibilidade One UI 8/9
-docs/auditoria-pacotes.md   # o que é seguro remover e por quê
+scamsung-debloat          # the tool
+scamsung-debloat.cmd      # Windows double-click entry (cmd.exe)
+scamsung-debloat.ps1      # Windows double-click entry (PowerShell)
+lists/basic.txt           # 51 packages, each explained
+lists/light.txt           # 98
+lists/heavy.txt           # 126
+lists/README.md           # preset file format
+tests/adb                 # fake adb (Galaxy One UI 9 simulator)
+tests/run.sh              # test suite
+docs/oneui-compat.md      # One UI 8/9 compatibility notes (pt-BR)
+docs/auditoria-pacotes.md # package risk audit (pt-BR, historical)
 ```
 
-Estado e logs: `~/.local/share/scamsung/` (`state.tsv`, `tweaks.tsv`,
-`logs/session-*.tsv`). Muda com `SCSUNG_DATA_DIR`.
+## Credits
 
-## Créditos
+- [itxjobe/samsungdebloat](https://github.com/itxjobe/samsungdebloat) — **preset base**,
+  tested on the author's own device (One UI 8/8.5/9)
+- [invinciblevenom/debloat_samsung_android](https://github.com/invinciblevenom/debloat_samsung_android) — original idea and `Tweaks.bat`
+- [Universal Android Debloater NG](https://github.com/Universal-Debloater-Alliance/universal-android-debloater-next-generation) — risk levels and package descriptions
+- [TheOneAndOnlyAtlas/Samsung-Debloater](https://github.com/TheOneAndOnlyAtlas/Samsung-Debloater) — One UI 7/8 reference
 
-- [invinciblevenom/debloat_samsung_android](https://github.com/invinciblevenom/debloat_samsung_android) — ideia e listas base, `Tweaks.bat`
-- [Universal Android Debloater NG](https://github.com/Universal-Debloater-Alliance/universal-android-debloater-next-generation) — descrições e nível de risco
-- [TheOneAndOnlyAtlas/Samsung-Debloater](https://github.com/TheOneAndOnlyAtlas/Samsung-Debloater) — referência One UI 7/8
-- [itxjobe/samsungdebloat](https://github.com/itxjobe/samsungdebloat) — **base das listas**, testadas no aparelho do autor (One UI 8/8.5/9)
-- XDA e Technastic pelas listas públicas de bloatware Samsung
+## License
+
+MIT — see [LICENSE](LICENSE). Use at your own risk; there's a preview before
+every removal for a reason.
