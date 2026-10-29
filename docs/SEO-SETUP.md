@@ -28,6 +28,8 @@ Documentação oficial: https://docs.github.com/pages/getting-started-with-githu
    `<meta name="google-site-verification" content="CODIGO">`.
 4. Cole essa meta no `<head>` de `docs/index.html` (e idealmente das outras 3
    páginas), faça push e clique em **Verificar**.
+   ✅ **Feito:** `docs/googled07fa5e60a6d0c42.html` já está publicado (método
+   "arquivo HTML"). Basta clicar em **Verificar** no Search Console.
    - Alternativa sem editar HTML: método **Arquivo HTML** — suba o arquivo
      `google<hash>.html` fornecido em `docs/`. Ambos funcionam em Pages.
 5. Depois de verificado: **Sitemaps** → enviar
