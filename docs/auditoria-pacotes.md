@@ -5,6 +5,10 @@ Serve para responder "posso tirar isso?" com evidência, não com achismo.
 
 Data da auditoria: outubro de 2026 (One UI 8/9, Android 16/17).
 
+> Documento histórico: refere-se às listas anteriores. Os presets atuais têm como
+> base o [itxjobe/samsungdebloat](https://github.com/itxjobe/samsungdebloat),
+> mas as constatações de risco abaixo continuam valendo (a deny-list nasceu delas).
+
 ---
 
 ## 1. Fontes cruzadas

@@ -15,7 +15,7 @@
 set -o pipefail
 
 APP_NAME="scamsung"
-APP_VERSION="1.4.0"
+APP_VERSION="1.5.0"
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 LISTS_DIR="$ROOT_DIR/lists"

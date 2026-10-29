@@ -1,5 +1,9 @@
 # Presets
 
+Base: [itxjobe/samsungdebloat](https://github.com/itxjobe/samsungdebloat)
+(níveis 'safe user apps', 'safe system apps', 'optional removals' e 'oneui8-specific'),
+filtrada pela deny-list do `scamsung` e com explicação em pt-BR por pacote.
+
 Três arquivos, cada um autocontido. Cada linha é **um pacote** + o que ele é / o que
 quebra se sair:
 
@@ -10,9 +14,9 @@ com.facebook.katana   # Facebook
 
 | Preset | Pacotes | Para quem |
 |--------|--------:|-----------|
-| `basic.txt` | 113 | quer o mínimo de risco; mantém conta Samsung, Galaxy AI e Health |
-| `light.txt` | 193 | não usa conta Samsung nem recursos Galaxy; inclui o basic |
-| `heavy.txt` | 264 | quer o máximo reversível; inclui o light |
+| `basic.txt` | 51 | quer o mínimo de risco: só apps de usuário, nada de sistema |
+| `light.txt` | 98 | ok tirar Wallet, temas, Find My Mobile e os apps Google de bordo |
+| `heavy.txt` | 126 | quer o máximo reversível; inclui o light |
 
 `heavy` contém tudo de `light`, que contém tudo de `basic` — o `self-test` falha se isso
 quebrar.

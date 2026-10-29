@@ -94,7 +94,7 @@ printf '\n== apply basic ==\n'
 out="$(sc -y apply basic 2>&1)"
 assert_file_has "facebook removido" "$FAKE_ADB_STATE/removed.txt" "com.facebook.katana"
 assert_file_has "netflix removido" "$FAKE_ADB_STATE/removed.txt" "com.netflix.mediaclient"
-assert_file_has "chrome removido" "$FAKE_ADB_STATE/removed.txt" "com.android.chrome"
+assert_file_has "aremoji removido" "$FAKE_ADB_STATE/removed.txt" "com.samsung.android.aremoji"
 assert_file_lacks "GMS preservado" "$FAKE_ADB_STATE/removed.txt" "com.google.android.gms"
 assert_file_lacks "Play Store preservado" "$FAKE_ADB_STATE/removed.txt" "com.android.vending"
 assert_file_lacks "teclado preservado" "$FAKE_ADB_STATE/removed.txt" "com.samsung.android.honeyboard"
@@ -126,7 +126,7 @@ else
     pass "estado vazio após restore"
 fi
 assert_file_has "facebook reinstalado" "$FAKE_ADB_STATE/installed.txt" "com.facebook.katana"
-assert_file_has "chrome reinstalado" "$FAKE_ADB_STATE/installed.txt" "com.android.chrome"
+assert_file_has "aremoji reinstalado" "$FAKE_ADB_STATE/installed.txt" "com.samsung.android.aremoji"
 assert_file_lacks "nada pendente em removed" "$FAKE_ADB_STATE/removed.txt" "com.facebook.katana"
 
 printf '\n== modo disable + restore ==\n'
@@ -140,8 +140,11 @@ assert_file_has "gos de volta em installed" "$FAKE_ADB_STATE/installed.txt" "com
 
 printf '\n== skip ==\n'
 out="$(sc -y --skip com.samsung.android.arzone apply basic 2>&1)"
-assert_file_has "basic aplicado depois do restore" "$FAKE_ADB_STATE/removed.txt" "com.samsung.android.rubin.app"
+assert_file_has "basic aplicado depois do restore" "$FAKE_ADB_STATE/removed.txt" "com.samsung.android.aremoji"
 assert_file_lacks "--skip respeitado" "$FAKE_ADB_STATE/removed.txt" "com.samsung.android.arzone"
+
+# o basic remove o GOS (itxjobe); reativa no fake para o bloco de tweaks
+adb shell pm enable com.samsung.android.game.gos >/dev/null 2>&1
 
 printf '\n== --categories foi removido ==\n'
 out="$(sc --categories social apply 2>&1)"

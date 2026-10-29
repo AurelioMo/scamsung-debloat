@@ -14,7 +14,7 @@ perfil — dá para voltar atrás com `./scamsung restore`.
 
 ## O que ele faz, em resumo
 
-- três presets com explicação em cada pacote: **basic** (113), **light** (193) e **heavy** (264);
+- três presets com explicação em cada pacote: **basic** (51), **light** (98) e **heavy** (126);
 - antes de aplicar, você vê linha por linha o que sai e o que é cada pacote;
 - uma deny-list protege o que não pode sair (Play Store, telefone, teclado, IMS/VoLTE...);
 - se o firmware novo renomeou um pacote, ele simplesmente é ignorado — não tem erro
@@ -68,9 +68,9 @@ explicação do que ele é e do que você perde:
 
 | Preset | Pacotes | O que remove | Para quem |
 |--------|--------:|--------------|-----------|
-| `basic` | 113 | pré-instalados, Facebook/Microsoft, apps Google opcionais, AR, Edge | todo mundo; mantém conta Samsung, Galaxy AI e Health |
-| `light` | 193 | tudo do basic + Bixby, conta/cloud/pagamentos Samsung, apps Samsung | quem não usa conta Samsung |
-| `heavy` | 264 | tudo do light + Device Care, Notes, Calculadora, Quick Share, TTS | máximo que ainda é reversível |
+| `basic` | 51 | só apps de usuário: Facebook/Netflix/Booking, apps Samsung duplicados (Notes, Agenda, Relógio, Calculadora, SMS, Internet, Health, Free, Members), Game Launcher, AR Emoji | todo mundo; não toca em sistema nenhum, conta Samsung e Wallet ficam |
+| `light` | 98 | tudo do basic + Chrome, Gmail, 'Ok Google', Android Auto, temas, Samsung Pass, Wallet, Smart Switch, Bixby (escuta/Vision), Find My Mobile | quem já trocou os apps Samsung pelos do Google |
+| `heavy` | 126 | tudo do light + YouTube, Maps, Gemini, Docs/Sheets/Slides, impressão, SmartThings, Interpreter, Email Samsung | máximo que ainda é reversível |
 
 O `apply` começa pela prévia — sempre, com `-n` ou sem:
 
@@ -144,11 +144,13 @@ O que ele **não** faz:
 
 Avisos que importam:
 
-- `light` e `heavy` tiram a conta Samsung (`com.osp.app.signin`): você perde Galaxy
-  Store, Find My, backup, Wallet e recursos Galaxy AI. Não usa nada disso? Ok, mas
-  era bom avisar antes.
-- `heavy` tira TTS, Android System Intelligence, Device Care, Notes, Calculadora
-  e Quick Share. Tenha substitutos instalados.
+- `basic` tira apps Samsung que parecem essenciais — Notes, Agenda, Relógio,
+  Calculadora, SMS, Internet e Health. Se você usa algum deles, anote o pacote e
+  passe `--skip` (ou veja com `./scamsung explain <pacote>` antes).
+- `light` tira Wallet, Samsung Pass, Find My Mobile, Smart Switch e os temas do
+  Galaxy Themes. Pagamento por aproximação e a busca do aparelho morrem junto.
+- `heavy` tira YouTube, Maps, Gemini, Docs/Sheets/Slides e toda a pilha de
+  impressão. Tenha substitutos instalados.
 - OTA da Samsung pode reinstalar apps. Depois de atualizar, rode `status` e `apply`
   de novo.
 - Reverter tudo: `./scamsung restore`. À mão, um pacote específico:
@@ -166,8 +168,10 @@ projeto removeu `com.android.cellbroadcastreceiver`, `kgclient`, `soundpicker`..
 2. One UI 8/9: lê `ro.build.version.oneui` e avisa em versões futuras; lista
    filtrada pelo que está instalado; fallback para disable; deny-list com o que o
    original removia e hoje dá problema.
-3. Listas atualizadas: Galaxy AI, Smart Suggestions, Modes and Routines, Quick
-   Share, Device Care, além dos preloads atuais (TikTok, LinkedIn etc.).
+3. Listas base do [itxjobe/samsungdebloat](https://github.com/itxjobe/samsungdebloat),
+   testadas pelo autor no próprio Galaxy com One UI 8/8.5/9 — não só no papel.
+   O que o projeto original removia e hoje dá problema (setup wizard, wsomacp,
+   Gallery3d...) ficou de fora mesmo aparecendo nas listas de origem.
 4. Presets auto-explicativos: cada pacote com comentário em pt-BR; `explain` mostra
    o que é, em quais presets está e o estado atual.
 5. Prévia obrigatória, confirmação, log de sessão e restore exato.
@@ -176,10 +180,12 @@ projeto removeu `com.android.cellbroadcastreceiver`, `kgclient`, `soundpicker`..
    OutrageousStorm: 16 pacotes de risco fora, 19 seguros dentro. Detalhes em
    [`docs/auditoria-pacotes.md`](docs/auditoria-pacotes.md).
 
-As listas vêm do projeto original, do
+As listas têm como base o [itxjobe/samsungdebloat](https://github.com/itxjobe/samsungdebloat)
+(níveis 1, 2, 'opcionais' e 'One UI 8'), cruzadas com o
 [UAD-ng](https://github.com/Universal-Debloater-Alliance/universal-android-debloater-next-generation)
-e de listas públicas de One UI 7–9. Validadas com um Galaxy simulado (Android 17 /
-One UI 9); em aparelho real, use a prévia obrigatória como rede de segurança.
+e filtradas pela deny-list. Validadas com um `adb` falso que finge um Galaxy
+(Android 17 / One UI 9) e com a prévia obrigatória como rede de segurança —
+nunca teste cego em aparelho real.
 
 ## Testes
 
@@ -199,9 +205,9 @@ restore, modo disable, `--skip`, presets e tweaks (idempotência, status, reset,
 scamsung            # a CLI
 scamsung.cmd        # atalho Windows (cmd.exe)
 scamsung.ps1        # atalho Windows (PowerShell)
-lists/basic.txt     # preset básico (113 pacotes, cada um com explicação)
-lists/light.txt     # preset recomendado (193)
-lists/heavy.txt     # preset agressivo (264)
+lists/basic.txt     # preset básico (51 pacotes, cada um com explicação)
+lists/light.txt     # preset intermediário (98)
+lists/heavy.txt     # preset agressivo (126)
 lists/README.md     # formato dos presets
 tests/adb           # adb falso
 tests/run.sh        # suíte de fumaça
@@ -217,5 +223,5 @@ Estado e logs: `~/.local/share/scamsung/` (`state.tsv`, `tweaks.tsv`,
 - [invinciblevenom/debloat_samsung_android](https://github.com/invinciblevenom/debloat_samsung_android) — ideia e listas base, `Tweaks.bat`
 - [Universal Android Debloater NG](https://github.com/Universal-Debloater-Alliance/universal-android-debloater-next-generation) — descrições e nível de risco
 - [TheOneAndOnlyAtlas/Samsung-Debloater](https://github.com/TheOneAndOnlyAtlas/Samsung-Debloater) — referência One UI 7/8
-- [itxjobe/samsungdebloat](https://github.com/itxjobe/samsungdebloat) — nomes verificados na One UI 8/8.5/9
+- [itxjobe/samsungdebloat](https://github.com/itxjobe/samsungdebloat) — **base das listas**, testadas no aparelho do autor (One UI 8/8.5/9)
 - XDA e Technastic pelas listas públicas de bloatware Samsung

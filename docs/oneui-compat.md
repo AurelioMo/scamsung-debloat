@@ -116,20 +116,24 @@ Se ambos falharem, o pacote entra em `FAILED`, aparece no resumo e não interrom
 
 ## 3. O que muda entre One UI 8 e 9
 
-Observado em firmware e em listas públicas (UAD-ng, Atlas, XDA/Technastic). Isto é
+Observado em firmware e em listas públicas (itxjobe — base dos presets —, UAD-ng, Atlas, XDA/Technastic). Isto é
 orientação, não garantia — confirme com `./scamsung apply <preset>` (a prévia é obrigatória).
 
 | Área | Mudança relevante | Efeito no script |
 |------|-------------------|------------------|
-| Galaxy AI | mais componentes em `com.samsung.android.*` (escrita, tradução, transcrição) | já em `samsung-ecosystem`/`samsung-extra`; ausentes são ignorados |
+| Galaxy AI | mais componentes em `com.samsung.android.*` (escrita, tradução, transcrição) | os que a base itxjobe cobre entram nos presets; nomes novos são ignorados |
 | Bixby | consolidação de pacotes (`bixby.*`, `voice.*`) | as listas cobrem as variantes conhecidas; nomes novos simplesmente não são tocados |
-| Conta Samsung | `com.osp.app.signin` centraliza login/wallet/backup | `light`/`heavy` removem; `basic` mantém |
-| Quick Share | migrou de `Nearby Share`/`com.samsung.android.beaconmanager` para `com.samsung.android.quickshare` | remoção só no preset `heavy` |
-| Device Care | `com.samsung.android.lool` + `com.samsung.android.sm.policy` | `lool` removível em `heavy`; `sm.policy` está na deny-list |
-| Mensagens | Google Messages passou a ser padrão em várias regiões | `com.google.android.apps.messaging` **não** está nas listas |
+| Conta Samsung | `com.osp.app.signin` centraliza login/wallet/backup | **nenhum** preset remove — a base itxjobe não toca nela |
+| Quick Share | migrou de `Nearby Share`/`com.samsung.android.beaconmanager` para `com.samsung.android.quickshare` | não sai em nenhum preset; do ecossistema, só `mdx.kit` (SmartThings) sai, no `heavy` |
+| Device Care | `com.samsung.android.lool` + `com.samsung.android.sm.policy` | nenhum dos dois sai; `sm.policy` está na deny-list |
+| Mensagens | Google Messages passou a ser padrão em várias regiões | `com.google.android.apps.messaging` **não** sai; o SMS da Samsung, sim (basic) |
 | Telefone/Contatos | apps Google substituíram Samsung em parte dos modelos | nenhum dos dois é removido; só o Samsung está na deny-list |
 | Preloads | rotação de parceiros (TikTok, Temu, LinkedIn, Spotify, Netflix) | o `basic` cobre os comuns; novos não são tocados |
 | Operadora | variantes US mantêm apps próprios | não entram em nenhum preset (fora do escopo) |
+
+Nota de validação: tudo neste repositório foi exercitado apenas contra um `adb`
+falso (veja `tests/adb`); nada foi aplicado em aparelho real. A prévia
+obrigatória do `apply` é a barreira final antes de qualquer remoção.
 
 Regra prática: **nome novo não é removido, nome antigo ausente não é erro**. O pior caso
 de uma lista desatualizada é deixar bloat para trás, não quebrar função.
