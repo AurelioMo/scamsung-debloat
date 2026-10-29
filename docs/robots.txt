@@ -1,0 +1,52 @@
+# scamsung-debloat — robots.txt
+# This file governs ONLY aureliomo.github.io/scamsung-debloat/.
+# It has no effect on github.com (we do not control that domain).
+
+# Everyone is welcome to crawl this documentation site.
+User-agent: *
+Allow: /
+
+# AI search/assistant crawlers — explicitly allowed.
+# Honest note: allowing a crawler grants ACCESS to these pages. It does NOT
+# guarantee the project will be cited in any AI answer — that depends on
+# each provider's ranking, freshness and relevance algorithms.
+User-agent: GPTBot
+Allow: /
+
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Perplexity-User
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: Claude-User
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: Googlebot
+Allow: /
+
+# Google-Extended controls content use for Gemini/training (not classic Search).
+# Allowed — this documentation is public and meant to be reused with attribution.
+User-agent: Google-Extended
+Allow: /
+
+# Applebot powers Siri/Spotlight suggestions.
+User-agent: Applebot
+Allow: /
+
+User-agent: DuckDuckBot
+Allow: /
+
+Sitemap: https://aureliomo.github.io/scamsung-debloat/sitemap.xml

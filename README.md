@@ -7,7 +7,13 @@
 
 # scamsung-debloat
 
-Remove Samsung bloatware **without root** on One UI 8/9 — macOS, Linux and Windows.
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Platform](https://img.shields.io/badge/platform-macOS%20%7C%20Linux%20%7C%20Windows-blue)](#requirements)
+[![Shell: bash 3.2+](https://img.shields.io/badge/shell-bash%203.2%2B-green)](scamsung-debloat)
+
+**Remove Samsung bloatware without root** on One UI 8/9 — macOS, Linux and Windows.
+
+🌐 [Site](https://aureliomo.github.io/scamsung-debloat/) · 📄 [Versão em Português](README_PT-BR.md)
 A modern rewrite of the archived
 [debloat_samsung_android](https://github.com/invinciblevenom/debloat_samsung_android),
 with presets based on
@@ -20,6 +26,24 @@ automatically (Português, English, Español) and every flow, menu, warning and
 error message is translated. Override with `SCAMSUNG_LANG=pt|en|es` if you want.
 New languages are one file in `lang/` away; `self-test` checks that all
 translations stay in sync.
+
+## Contents
+
+- [⚠️ Read this first](#-read-this-first--always)
+- [Requirements](#requirements)
+- [Getting started — two clicks, no typing](#getting-started--two-clicks-no-typing)
+- [Presets](#presets)
+- [What applying a preset looks like](#what-applying-a-preset-looks-like)
+- [Tweaks](#tweaks-menu-option-5)
+- [Restoring](#restoring)
+- [What this tool does NOT do](#what-this-tool-does-not-do)
+- [Safety design](#safety-design)
+- [FAQ](#faq)
+- [Uninstalling](#uninstalling-the-tool)
+- [Tests](#tests)
+- [Project structure](#project-structure)
+- [Credits](#credits)
+- [License](#license)
 
 ---
 
@@ -75,20 +99,25 @@ Prepare the phone once:
 3. A numbered menu appears. **Type a number, press Enter.** That's the whole interface:
 
 ```
-scamsung-debloat 1.6.0
-  1) Diagnóstico do aparelho        ← check adb + phone + One UI version (start here)
-  2) Aplicar preset                 ← pick basic / light / heavy, see preview, confirm
-  3) Ver o que você já removeu      ← everything this tool ever removed
-  4) Restaurar tudo                 ← undo everything this tool did
-  5) Tweaks (GOS, RAM Plus...)      ← performance options, each explained in place
-  6) Ver pacotes instalados         ← search what's on the phone
-  7) Parear por Wi-Fi               ← drop the cable
-  8) Sair
+  ╔═╗┌─┐┌─┐┌┬┐┌─┐┬ ┬┌┐┌┌─┐
+  ╚═╗│  ├─┤│││└─┐│ │││││ ┬
+  ╚═╝└─┘┴ ┴┴ ┴└─┘└─┘┘└┘└─┘
+      ··· d e b l o a t ···
+no root · fully reversible · One UI 8/9
+  1) Device diagnostics        ← check adb + phone + One UI version (start here)
+  2) Apply preset              ← pick basic / light / heavy, see preview, confirm
+  3) See what you removed      ← everything this tool ever removed
+  4) Restore everything        ← undo everything this tool did
+  5) Tweaks (GOS, RAM Plus…)   ← performance options, each explained in place
+  6) See installed packages    ← search what's on the phone
+  7) Pair over Wi-Fi           ← drop the cable
+  8) Quit
+Choose:
 ```
 
-> The menu speaks Portuguese; this README documents the same flow in English.
-> Every destructive path shows a preview and asks for confirmation in the phone's
-> own pace — invalid input never applies anything.
+> The menu follows your OS language automatically (Português, English, Español —
+> example above in English). Every destructive path shows a preview first and
+> asks for a typed confirmation — invalid input never applies anything.
 
 Recommended first run: **1** (diagnostics) → **2** → `basic` → read the preview →
 type `sim`. You can stop at any point before the `sim` and nothing happens.
@@ -205,6 +234,60 @@ Environment: `ANDROID_SERIAL` (same as `--serial`), `SCAMSUNG_LANG=pt|en|es`
 
 </details>
 
+## FAQ
+
+**Does scamsung-debloat require root?**
+No. It only runs `adb shell pm … --user 0`, the same ADB commands a power user
+would type by hand. Apps are removed from your user profile, not from the
+system partition.
+
+**Will it trip Knox, void my warranty or break Play Integrity?**
+No. `--user 0` package removal is a stock Android feature exposed through ADB —
+nothing touches the bootloader, `/system`, Knox or device attestation. Banking
+apps and Google Pay keep working.
+
+**Which devices are supported?**
+Built and validated for Samsung Galaxy devices running One UI 8/9 (Android
+16/17). Older One UI versions work the same way; newer, unseen versions trigger
+a warning but still run, because the tool only touches packages that actually
+exist on the phone.
+
+**How do I get a removed app back?**
+Menu option **4** (*Restore everything*) brings back everything this tool
+removed. Single app, by hand: `adb shell cmd package install-existing <package>`.
+
+**Will a Samsung OTA update bring the bloatware back?**
+Sometimes. OTAs can reinstall Samsung apps — just run the same preset again.
+Nothing breaks in the meantime.
+
+**Does debloating free up storage space?**
+No. The APKs stay in the read-only system partition. The gains are RAM,
+background battery drain, privacy and a clean app drawer — not gigabytes.
+
+**What if an app I keep depends on something a preset removes?**
+The dependent feature stops working (e.g. Samsung watch faces need Samsung
+apps). Every preset line explains what breaks, the preview shows the full list
+before anything happens, and restore always brings the dependency back.
+
+**Can I remove just one specific app?**
+Yes: `./scamsung-debloat apply --only com.facebook.katana`. The deny-list still
+applies — `explain <package>` tells you what anything is before you touch it.
+
+**Where is the log of what the tool did?**
+`~/.local/share/scamsung-debloat/` — `state.tsv` (pending restores),
+`tweaks.tsv` (original tweak values) and `logs/session-*.tsv` (every action).
+
+## Uninstalling the tool
+
+The tool installs nothing on your computer — it is one script. To remove it
+completely:
+
+1. Run menu option **4** (*Restore everything*) so the phone goes back to stock.
+2. Delete the cloned/downloaded folder.
+3. Delete the state folder: `rm -rf ~/.local/share/scamsung-debloat`.
+
+Disable USB debugging on the phone if you enabled it only for this.
+
 ## Tests
 
 The suite runs against a **fake adb** that simulates a Galaxy on One UI 9 — no
@@ -235,6 +318,8 @@ tests/adb                 # fake adb (Galaxy One UI 9 simulator)
 tests/run.sh              # test suite
 docs/oneui-compat.md      # One UI 8/9 compatibility notes (pt-BR)
 docs/auditoria-pacotes.md # package risk audit (pt-BR, historical)
+docs/index.html           # project website (GitHub Pages)
+README_PT-BR.md           # this file, em português
 ```
 
 ## Credits

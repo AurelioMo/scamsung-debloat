@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>scamsung-debloat — Remove Samsung bloatware without root (One UI 8/9)</title>
+<meta name="description" content="Free, open-source CLI that removes Samsung Galaxy bloatware without root. Numbered menu, presets with per-package explanations, mandatory preview, fully reversible. macOS, Linux, Windows.">
+<link rel="canonical" href="https://aureliomo.github.io/scamsung-debloat/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="scamsung-debloat">
+<meta property="og:title" content="scamsung-debloat — Remove Samsung bloatware without root">
+<meta property="og:description" content="Debloat Samsung Galaxy (One UI 8/9) without root. Double-click numbered menu, honest presets, mandatory preview, fully reversible.">
+<meta property="og:url" content="https://aureliomo.github.io/scamsung-debloat/">
+<link rel="stylesheet" href="assets/style.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareSourceCode",
+  "name": "scamsung-debloat",
+  "description": "Remove Samsung Galaxy bloatware without root. Numbered terminal menu, presets with per-package explanations, mandatory preview, reversible by design.",
+  "codeRepository": "https://github.com/AurelioMo/scamsung-debloat",
+  "programmingLanguage": "Shell",
+  "runtimePlatform": ["macOS", "Linux", "Windows"],
+  "license": "https://opensource.org/licenses/MIT",
+  "author": { "@type": "Person", "name": "AurelioMo", "url": "https://github.com/AurelioMo" }
+}
+</script>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site">
+  <div class="wrap">
+    <a class="brand" href="./"><b>scamsung</b>-debloat</a>
+    <nav class="site" aria-label="Main">
+      <a href="./" aria-current="page">Home</a>
+      <a href="install.html">Install</a>
+      <a href="safety.html">Safety &amp; restore</a>
+      <a href="compatibility.html">Compatibility</a>
+      <a class="github" href="https://github.com/AurelioMo/scamsung-debloat">GitHub</a>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+<div class="wrap">
+
+<div class="hero">
+  <div class="logo" aria-hidden="true">  ╔═╗┌─┐┌─┐┌┬┐┌─┐┬ ┬┌┐┌┌─┐
+  ╚═╗│  ├─┤│││└─┐│ │││││ ┬
+  ╚═╝└─┘┴ ┴┴ ┴└─┘└─┘┘└┘└─┘
+      ··· d e b l o a t ···</div>
+  <h1>Samsung debloat, minus the scary parts</h1>
+  <p class="tagline">Remove Galaxy bloatware on One UI 8/9 <strong>without root</strong>.
+  Double-click a file, pick numbers from a menu, review the exact list of what
+  leaves your phone, and undo everything with one command.</p>
+  <div class="cta">
+    <a class="btn primary" href="install.html">Install in 5 minutes</a>
+    <a class="btn" href="https://github.com/AurelioMo/scamsung-debloat">View on GitHub</a>
+  </div>
+</div>
+
+<div class="grid">
+  <div class="card">
+    <h3>No root. Ever.</h3>
+    <p>Everything runs through <code>adb shell pm … --user 0</code> — the stock
+    Android mechanism. Knox, bootloader and warranty are never touched.</p>
+  </div>
+  <div class="card">
+    <h3>Preview before anything</h3>
+    <p>You always see the full removal list first and must type
+    <code>sim</code> to continue. There is no way to skip the preview.</p>
+  </div>
+  <div class="card">
+    <h3>Reversible by design</h3>
+    <p>Every action is logged. <em>Restore everything</em> brings each app back;
+    tweaks restore their exact original values.</p>
+  </div>
+  <div class="card">
+    <h3>Honest presets</h3>
+    <p>Each of the 51–126 packages in a preset has a plain-language line saying
+    what it is and what stops working without it.</p>
+  </div>
+  <div class="card">
+    <h3>Your language</h3>
+    <p>The whole interface — menus, warnings, errors — speaks Português,
+    English or Español, following your OS automatically.</p>
+  </div>
+  <div class="card">
+    <h3>Tested, not on your phone</h3>
+    <p>73 automated checks run against a fake adb simulating a Galaxy on
+    One UI 9. No real device is ever needed to validate the tool.</p>
+  </div>
+</div>
+
+<h2 id="how-it-works">How it works</h2>
+<p>scamsung-debloat is a single bash script (with tiny Windows wrappers). When you
+pick a preset, it asks your phone which packages actually exist, subtracts a
+built-in deny-list of critical components, shows you what remains, and only then
+removes apps from your user profile:</p>
+<ol class="steps">
+  <li><strong>Diagnostics</strong> — checks adb, the device and your Android/One UI version.</li>
+  <li><strong>Preview</strong> — prints every package to be removed, each with its explanation,
+      plus counts of what is already gone or missing.</li>
+  <li><strong>Confirmation</strong> — type <code>sim</code>. Anything else cancels safely.</li>
+  <li><strong>Apply</strong> — <code>pm uninstall --user 0</code> per package; failures fall back
+      to disabling the app (data preserved).</li>
+  <li><strong>Undo anytime</strong> — menu option 4 restores everything this tool ever removed.</li>
+</ol>
+
+<h2 id="presets">Three presets, nested</h2>
+<table>
+  <thead>
+    <tr><th>Preset</th><th>Packages</th><th>What goes away</th><th>Risk</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>basic</code></td><td>51</td>
+      <td>Preinstalled junk only: Facebook/Netflix/Booking/Amazon, duplicate Samsung
+      user apps, Game Launcher, AR Emoji.</td>
+      <td><strong>Low.</strong> No system component touched; Samsung account, Wallet and Galaxy AI stay.</td>
+    </tr>
+    <tr>
+      <td><code>light</code></td><td>98</td>
+      <td>Everything in <code>basic</code>, plus Chrome, Gmail, "Ok Google", Android Auto,
+      Galaxy Themes, Samsung Pass, Wallet, Bixby, Find My Mobile.</td>
+      <td><strong>Medium.</strong> Only if you already replaced those with other apps.</td>
+    </tr>
+    <tr>
+      <td><code>heavy</code></td><td>126</td>
+      <td>Everything in <code>light</code>, plus YouTube, Maps, Gemini, Docs/Sheets/Slides,
+      printing stack, SmartThings, Interpreter.</td>
+      <td><strong>Medium-high.</strong> Maximum that is still reversible. Have replacements first.</td>
+    </tr>
+  </tbody>
+</table>
+<p>Never removed, in any preset: Play Store/Services, SystemUI, Settings, the
+One UI launcher, phone/dialer, IMS/VoLTE/Wi-Fi calling, Samsung keyboard and the
+setup wizard — see <a href="safety.html#deny-list">the deny-list</a>.</p>
+
+<h2 id="why-not-canta-or-uad">Why not Canta or UAD?</h2>
+<p><a href="https://github.com/Universal-Debloater-Alliance/universal-android-debloater-next-generation">Universal
+Android Debloater</a> and <a href="https://github.com/samolego/Canta">Canta</a> are
+great projects — scamsung-debloat borrows risk knowledge from them. It exists for
+the people they don't serve well: Galaxy owners who don't want to learn a new app,
+who want a menu in their own language, presets built specifically for
+One UI 8/9 (based on <a href="https://github.com/itxjobe/samsungdebloat">itxjobe's
+community-tested lists</a>), and a restore path that doesn't depend on keeping
+Shizuku alive.</p>
+
+<h2 id="faq">Quick answers</h2>
+<details>
+  <summary>Does it need root? Does it trip Knox?</summary>
+  <p>No and no. It uses <code>adb shell pm … --user 0</code>, a stock Android feature.
+  Bootloader, <code>/system</code>, Knox and Play Integrity are untouched.</p>
+</details>
+<details>
+  <summary>Can I undo it?</summary>
+  <p>Yes — menu option 4 restores everything the tool removed, and
+  <code>tweaks --reset</code> restores every setting to its recorded original value.</p>
+</details>
+<details>
+  <summary>Will an OTA update bring the apps back?</summary>
+  <p>Samsung OTAs sometimes reinstall their apps. Nothing breaks — run the same
+  preset again.</p>
+</details>
+<details>
+  <summary>Does it free up storage?</summary>
+  <p>No: APKs stay in the read-only system partition. The gains are RAM, background
+  battery drain, privacy and a clean app drawer.</p>
+</details>
+<p>More in <a href="safety.html">Safety &amp; restore</a> and
+<a href="compatibility.html">Compatibility</a>.</p>
+
+</div>
+</main>
+
+<footer class="site">
+  <div class="wrap">
+    <p>scamsung-debloat is free software under the
+    <a href="https://github.com/AurelioMo/scamsung-debloat/blob/main/LICENSE">MIT license</a>.
+    Presets based on <a href="https://github.com/itxjobe/samsungdebloat">itxjobe/samsungdebloat</a>.
+    Not affiliated with Samsung or Google.</p>
+    <p><a href="https://github.com/AurelioMo/scamsung-debloat">Repository</a> ·
+    <a href="https://github.com/AurelioMo/scamsung-debloat/issues">Issues</a> ·
+    <a href="https://github.com/AurelioMo/scamsung-debloat/releases">Releases</a></p>
+  </div>
+</footer>
+</body>
+</html>

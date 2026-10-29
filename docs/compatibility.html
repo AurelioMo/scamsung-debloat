@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Compatibility — scamsung-debloat</title>
+<meta name="description" content="Which phones, One UI versions and computers run scamsung-debloat: One UI 8/9 (Android 16/17) targets, host requirements and known limitations.">
+<link rel="canonical" href="https://aureliomo.github.io/scamsung-debloat/compatibility.html">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="scamsung-debloat">
+<meta property="og:title" content="Compatibility — scamsung-debloat">
+<meta property="og:description" content="Supported One UI versions, host platforms and known limitations.">
+<meta property="og:url" content="https://aureliomo.github.io/scamsung-debloat/compatibility.html">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site">
+  <div class="wrap">
+    <a class="brand" href="./"><b>scamsung</b>-debloat</a>
+    <nav class="site" aria-label="Main">
+      <a href="./">Home</a>
+      <a href="install.html">Install</a>
+      <a href="safety.html">Safety &amp; restore</a>
+      <a href="compatibility.html" aria-current="page">Compatibility</a>
+      <a class="github" href="https://github.com/AurelioMo/scamsung-debloat">GitHub</a>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+<div class="wrap">
+<article class="page">
+<h1>Compatibility</h1>
+<p class="lede">Built for Galaxy phones on One UI 8/9. Works on any computer with
+bash and adb. Honest limits below.</p>
+
+<h2 id="phones">Phones and One UI versions</h2>
+<table>
+  <thead><tr><th>Firmware</th><th>Status</th></tr></thead>
+  <tbody>
+    <tr><td>One UI 8/9 (Android 16/17)</td>
+        <td><strong>Target.</strong> Presets are based on lists community-tested on One UI 8/8.5/9
+        (<a href="https://github.com/itxjobe/samsungdebloat">itxjobe/samsungdebloat</a>).</td></tr>
+    <tr><td>One UI 7 and older</td>
+        <td>Same mechanism; some preset packages simply won't exist and are skipped.</td></tr>
+    <tr><td>Newer / unseen versions</td>
+        <td>The tool prints a version warning, then proceeds — it only touches packages
+        that exist on the phone, and the deny-list always applies.</td></tr>
+  </tbody>
+</table>
+<p>Any Galaxy model runs the same <code>pm --user 0</code> commands — S, Z, A, M,
+Note, Tab. The presets describe <em>phone</em> apps; on tablets and foldables some
+lines may not apply (they will show as "missing on device" and be skipped). Deep,
+version-by-version notes live in the repository:
+<a href="https://github.com/AurelioMo/scamsung-debloat/blob/main/docs/oneui-compat.md">docs/oneui-compat.md</a>
+(pt-BR).</p>
+
+<h2 id="hosts">Computers</h2>
+<table>
+  <thead><tr><th>Host</th><th>Requirement</th></tr></thead>
+  <tbody>
+    <tr><td>macOS</td><td>Works with the stock bash 3.2 — nothing else needed beyond adb.</td></tr>
+    <tr><td>Linux</td><td>Any distro with bash + platform-tools.</td></tr>
+    <tr><td>Windows</td><td><a href="https://git-scm.com/download/win">Git for Windows</a>
+        (Git Bash) + platform-tools; double-click the <code>.cmd</code> wrapper.</td></tr>
+  </tbody>
+</table>
+<p>Interface language follows the OS: Português, English, Español
+(<code>SCAMSUNG_LANG</code> overrides).</p>
+
+<h2 id="limitations">Known limitations</h2>
+<ul>
+  <li><strong>No storage freed.</strong> APKs remain in the read-only system
+      partition; you gain RAM, battery and privacy, not gigabytes.</li>
+  <li><strong>OTAs can reinstall apps.</strong> Re-run the preset after major Samsung updates.</li>
+  <li><strong>Package renames degrade gracefully.</strong> If Samsung renames a
+      package, the preset line just stops matching. Removals are never guessed.</li>
+  <li><strong>Carrier firmware (US models).</strong> Carrier-specific apps are
+      intentionally not in the presets — they vary too much. Use
+      <code>apply --only &lt;package&gt;</code> after checking with
+      <code>explain &lt;package&gt;</code>.</li>
+  <li><strong>Galaxy AI is your choice.</strong> AI features are deliberately kept
+      out of the presets — remove them individually only if you don't use them.</li>
+  <li><strong>Tested on a simulator.</strong> The automated suite uses a fake adb;
+      no physical model matrix exists. Report firmware-specific oddities in
+      <a href="https://github.com/AurelioMo/scamsung-debloat/issues">issues</a>.</li>
+</ul>
+
+</article>
+</div>
+</main>
+
+<footer class="site">
+  <div class="wrap">
+    <p>scamsung-debloat — MIT licensed, not affiliated with Samsung or Google.</p>
+    <p><a href="https://github.com/AurelioMo/scamsung-debloat">Repository</a> ·
+    <a href="https://github.com/AurelioMo/scamsung-debloat/issues">Issues</a></p>
+  </div>
+</footer>
+</body>
+</html>
