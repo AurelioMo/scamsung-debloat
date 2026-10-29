@@ -3,18 +3,19 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>scamsung-debloat — Remove Samsung bloatware without root (One UI 8/9)</title>
-<meta name="description" content="Free, open-source CLI that removes Samsung Galaxy bloatware without root. Numbered menu, presets with per-package explanations, mandatory preview, fully reversible. macOS, Linux, Windows.">
+<title>scamsung-debloat — delete Samsung bloatware without root (One UI 8/9)</title>
+<meta name="description" content="Free, open-source tool that removes Samsung Galaxy bloatware without root. Try the three presets live in your browser — then double-click, read the preview, type sim. Undo anytime.">
 <link rel="canonical" href="https://aureliomo.github.io/scamsung-debloat/">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="scamsung-debloat">
-<meta property="og:title" content="scamsung-debloat — Remove Samsung bloatware without root">
-<meta property="og:description" content="Debloat Samsung Galaxy (One UI 8/9) without root. Double-click numbered menu, honest presets, mandatory preview, fully reversible.">
+<meta property="og:title" content="scamsung-debloat — delete Samsung bloatware without root">
+<meta property="og:description" content="Debloater for Samsung Galaxy (One UI 8/9). No root, mandatory preview, one-command undo. Runs the presets live in this page.">
 <meta property="og:url" content="https://aureliomo.github.io/scamsung-debloat/">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Onest:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/style.css">
+<script src="assets/main.js" defer></script>
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -48,232 +49,266 @@
   <div class="hero">
     <div class="hero-frame">
       <span class="eyebrow reveal">no root · reversible · one ui 8/9</span>
-      <h1 class="reveal d1">Debloat your Galaxy<br>without root.<br><span class="prompt">Undo in one command.</span></h1>
-      <p class="lede reveal d2"><strong>scamsung-debloat</strong> is a tiny open-source CLI
-      for Samsung phones on One UI 8/9. Double-click a file, pick numbers from a menu,
-      review the exact list of what leaves your phone — and restore everything if you
-      change your mind.</p>
+      <h1 class="reveal d1">Apps you <span class="hot">never installed</span>,<br>eating battery you paid for.</h1>
+      <p class="lede reveal d2"><strong>scamsung-debloat</strong> removes Samsung bloatware
+      without root. You read the full list first, you type <code>sim</code> — and until you
+      do, nothing happens. Undo works for the life of the phone. Free, open-source, and it
+      speaks Português, English and Español.</p>
       <div class="cta-row reveal d3">
-        <a class="btn primary" href="install.html">Install in 5 minutes <span class="orb">↗</span></a>
-        <a class="btn ghost" href="https://github.com/AurelioMo/scamsung-debloat">View on GitHub <span class="orb">↗</span></a>
+        <a class="btn primary" href="install.html">Install in five minutes <span class="orb">↗</span></a>
+        <a class="btn ghost" href="https://github.com/AurelioMo/scamsung-debloat">GitHub <span class="orb">↗</span></a>
       </div>
     </div>
 
-    <div class="term-shell reveal d4">
+    <div class="term-shell boot" id="demo">
       <div class="term">
         <div class="term-bar">
           <span class="dots" aria-hidden="true"><i></i><i></i><i></i></span>
-          <span>adb · Galaxy (test simulator) · One UI 9.0</span>
+          <span class="rig">adb · fake-adb test rig · Galaxy SM-S931B</span>
+          <button class="replay" type="button" title="Run the demo again">↻ replay</button>
         </div>
-        <pre><b><span class="c-cmd">$ ./scamsung-debloat apply basic</span>
-<span class="c-head">  SM-S931B (e1q) · Android 17 | One UI 9.0</span>
-<span class="c-head">==&gt; Reading packages from the device</span>
-  55 installed now / 55 known to the device
-<span class="c-head">==&gt; Preview: preset basic</span>
-  51 packages in the list
-  ~ com.facebook.katana          — Facebook
-  ~ com.netflix.mediaclient      — Netflix
-  ~ com.samsung.android.aremoji  — AR Emoji
-  <span class="c-dim">… 48 more lines, each with its explanation …</span>
-
-<span class="c-in">Type sim to continue:</span> <span class="c-in">sim</span><span class="caret"></span>
-<span class="c-head">==&gt; Applying (uninstall)</span>
-<span class="c-add">  + com.facebook.katana  — Facebook</span>
-<span class="c-add">  + com.sec.android.app.sbrowser  — Samsung Internet</span>
-  <span class="c-dim">…</span>
-<span class="c-head">==&gt; Summary</span>
-  removed: 20 · disabled: 0 · missing on device: 31
-<span class="c-add">  Undo: ./scamsung-debloat restore</span></b></pre>
+        <div class="term-body">
+          <span class="l"><span class="t-cmd">$ </span><span class="t-cmd" data-cmd="./scamsung-debloat apply basic"></span></span>
+          <div class="term-out">
+<span class="l t-head">==&gt; Galaxy SM-S931B (e1q) · Android 17 · One UI 9.0</span>
+<span class="l t-head">==&gt; 55 packages on device · preset "basic" flags 51</span>
+<span class="l">  ~ com.facebook.katana           — Facebook</span>
+<span class="l">  ~ com.netflix.mediaclient       — Netflix</span>
+<span class="l">  ~ com.samsung.android.aremoji   — AR Emoji</span>
+<span class="l">  ~ com.samsung.android.app.spage — Samsung Free</span>
+<span class="l">  ~ com.sec.android.app.sbrowser  — Samsung Internet</span>
+<span class="l t-dim">    … 46 more lines — every single one explained …</span>
+<span class="l t-in">Type sim to continue: sim</span>
+<span class="l t-head">==&gt; Applying (uninstall)…</span>
+<span class="l t-add">  + com.facebook.katana — Facebook</span>
+<span class="l t-add">  + com.netflix.mediaclient — Netflix</span>
+<span class="l t-add">  + com.sec.android.app.sbrowser — Samsung Internet</span>
+<span class="l t-dim">    … 17 more …</span>
+<span class="l t-ok">==&gt; removed: 20 · skipped (not on this device): 31</span>
+<span class="l t-in">==&gt; undo anytime: ./scamsung-debloat restore</span>
+          </div>
+          <span class="l"><span class="t-cmd">$ </span><span class="caret"></span></span>
+        </div>
+        <div class="t-chips">
+          <span>try a preset:</span>
+          <button class="t-chip on" type="button" data-preset="basic" aria-pressed="true">basic · 51</button>
+          <button class="t-chip" type="button" data-preset="light" aria-pressed="false">light · 98</button>
+          <button class="t-chip" type="button" data-preset="heavy" aria-pressed="false">heavy · 126</button>
+        </div>
       </div>
     </div>
-    <p class="term-caption reveal d5">// a verbatim run against the project's fake-adb test rig — your phone shows the same flow with its own numbers</p>
+
+    <template id="tpl-basic"><span class="l t-head" data-speed="slow">==&gt; Galaxy SM-S931B (e1q) · Android 17 · One UI 9.0</span>
+<span class="l t-head" data-speed="slow">==&gt; 55 packages on device · preset "basic" flags 51</span>
+<span class="l">  ~ com.facebook.katana           — Facebook</span>
+<span class="l">  ~ com.netflix.mediaclient       — Netflix</span>
+<span class="l">  ~ com.samsung.android.aremoji   — AR Emoji</span>
+<span class="l">  ~ com.samsung.android.app.spage — Samsung Free</span>
+<span class="l">  ~ com.sec.android.app.sbrowser  — Samsung Internet</span>
+<span class="l t-dim">    … 46 more lines — every single one explained …</span>
+<span class="l t-in" data-speed="slow">Type sim to continue: sim</span>
+<span class="l t-head">==&gt; Applying (uninstall)…</span>
+<span class="l t-add" data-speed="fast">  + com.facebook.katana — Facebook</span>
+<span class="l t-add" data-speed="fast">  + com.netflix.mediaclient — Netflix</span>
+<span class="l t-add" data-speed="fast">  + com.sec.android.app.sbrowser — Samsung Internet</span>
+<span class="l t-dim" data-speed="fast">    … 17 more …</span>
+<span class="l t-ok" data-speed="slow">==&gt; removed: 20 · skipped (not on this device): 31</span>
+<span class="l t-in" data-speed="slow">==&gt; undo anytime: ./scamsung-debloat restore</span></template>
+
+    <template id="tpl-light"><span class="l t-head" data-speed="slow">==&gt; Galaxy SM-S931B (e1q) · Android 17 · One UI 9.0</span>
+<span class="l t-head" data-speed="slow">==&gt; 55 packages on device · preset "light" flags 98</span>
+<span class="l">  ~ com.android.chrome            — Chrome</span>
+<span class="l">  ~ com.google.android.gm         — Gmail</span>
+<span class="l">  ~ com.facebook.katana           — Facebook</span>
+<span class="l">  ~ com.microsoft.skydrive        — OneDrive</span>
+<span class="l">  ~ com.samsung.android.app.tips  — Samsung Tips</span>
+<span class="l t-dim">    … 93 more lines — every single one explained …</span>
+<span class="l t-in" data-speed="slow">Type sim to continue: sim</span>
+<span class="l t-head">==&gt; Applying (uninstall)…</span>
+<span class="l t-add" data-speed="fast">  + com.android.chrome — Chrome</span>
+<span class="l t-add" data-speed="fast">  + com.google.android.gm — Gmail</span>
+<span class="l t-add" data-speed="fast">  + com.facebook.katana — Facebook</span>
+<span class="l t-dim" data-speed="fast">    … 24 more …</span>
+<span class="l t-ok" data-speed="slow">==&gt; removed: 27 · skipped (not on this device): 71</span>
+<span class="l t-in" data-speed="slow">==&gt; undo anytime: ./scamsung-debloat restore</span></template>
+
+    <template id="tpl-heavy"><span class="l t-head" data-speed="slow">==&gt; Galaxy SM-S931B (e1q) · Android 17 · One UI 9.0</span>
+<span class="l t-head" data-speed="slow">==&gt; 55 packages on device · preset "heavy" flags 126</span>
+<span class="l">  ~ com.google.android.youtube    — YouTube</span>
+<span class="l">  ~ com.google.android.apps.maps  — Google Maps</span>
+<span class="l">  ~ com.google.android.apps.docs  — Google Drive</span>
+<span class="l">  ~ com.android.printspooler      — printing stack</span>
+<span class="l">  ~ com.google.android.apps.bard  — Gemini</span>
+<span class="l t-dim">    … 121 more lines — every single one explained …</span>
+<span class="l t-in" data-speed="slow">Type sim to continue: sim</span>
+<span class="l t-head">==&gt; Applying (uninstall)…</span>
+<span class="l t-add" data-speed="fast">  + com.google.android.youtube — YouTube</span>
+<span class="l t-add" data-speed="fast">  + com.google.android.apps.maps — Google Maps</span>
+<span class="l t-add" data-speed="fast">  + com.google.android.apps.bard — Gemini</span>
+<span class="l t-dim" data-speed="fast">    … 27 more …</span>
+<span class="l t-ok" data-speed="slow">==&gt; removed: 30 · skipped (not on this device): 96</span>
+<span class="l t-in" data-speed="slow">==&gt; undo anytime: ./scamsung-debloat restore</span></template>
+    <p class="term-caption">// verbatim flow from the project's fake-adb test rig — your phone runs the
+    same session with its own numbers, and the real tool prints one explanation per line</p>
 
     <div class="stats">
-      <div class="stat"><div class="n">51<em>·</em>98<em>·</em>126</div><div class="l">packages per preset, each explained</div></div>
-      <div class="stat"><div class="n">73</div><div class="l">automated checks, zero devices needed</div></div>
-      <div class="stat"><div class="n">3</div><div class="l">interface languages (PT · EN · ES)</div></div>
-      <div class="stat"><div class="n">0<em>%</em></div><div class="l">root involved, Knox untouched</div></div>
+      <div class="stat" data-reveal><div class="n">51<em>·</em>98<em>·</em>126</div><div class="l">packages per preset — every line explained</div></div>
+      <div class="stat" data-reveal="2"><div class="n">73</div><div class="l">test-suite checks — zero phones harmed</div></div>
+      <div class="stat" data-reveal="3"><div class="n">3</div><div class="l">interface languages — pt · en · es</div></div>
+      <div class="stat" data-reveal="3"><div class="n">0<em>%</em></div><div class="l">root · Knox trips · warranty damage</div></div>
     </div>
   </div>
 
-  <section id="features">
-    <div class="sec-head">
-      <h2>Built to be boring<br>about the scary parts</h2>
-      <p>Everything a debloat flow should do by default — and most tools skip.</p>
-    </div>
-    <div class="bento">
-      <div class="cell">
-        <div class="shell"><div class="core">
-          <h3><span class="k">01</span>No root. Ever.</h3>
-          <p>Only <code>adb shell pm … --user 0</code> — stock Android mechanism.
-          Knox, bootloader, warranty and Play Integrity are never touched.</p>
-        </div></div>
-      </div>
-      <div class="cell">
-        <div class="shell"><div class="core">
-          <h3><span class="k">02</span>Preview or nothing</h3>
-          <p>You always see the full removal list first and must type
-          <code>sim</code>. There is no flag that skips the preview.</p>
-        </div></div>
-      </div>
-      <div class="cell">
-        <div class="shell"><div class="core">
-          <h3><span class="k">03</span>Reversible by design</h3>
-          <p>Every action is logged. Menu option 4 restores each app;
-          <code>tweaks --reset</code> returns every setting to its original value.</p>
-        </div></div>
-      </div>
-      <div class="cell">
-        <div class="shell"><div class="core">
-          <h3><span class="k">04</span>Presets that explain</h3>
-          <p>Every one of the 51–126 packages has a plain-language line: what it
-          is, and what stops working without it.</p>
-        </div></div>
-      </div>
-      <div class="cell">
-        <div class="shell"><div class="core">
-          <h3><span class="k">05</span>Speaks your language</h3>
-          <p>Menus, warnings and errors follow your OS — Português, English,
-          Español. The whole flow, not just the docs.</p>
-        </div></div>
-      </div>
-      <div class="cell">
-        <div class="shell"><div class="core">
-          <h3><span class="k">06</span>Tested, not on your phone</h3>
-          <p>73 checks run against a fake adb simulating One UI 9.
-          Your firmware is the final preview — which is why the preview exists.</p>
-        </div></div>
-      </div>
-    </div>
+  <section id="manifesto" class="manifesto">
+    <p class="lead-line" data-reveal>Installing an app to remove apps <mark>felt wrong.</mark></p>
+    <p data-reveal>So scamsung-debloat is a shell script instead — one file you can read
+    in a single sitting, and you should, because it asks for your phone.</p>
+    <p data-reveal="2"><a href="https://github.com/samolego/Canta">Canta</a> and
+    <a href="https://github.com/Universal-Debloater-Alliance/universal-android-debloater-next-generation">UAD</a>
+    are excellent, and this project reuses their risk research. But they want a background
+    daemon or a new desktop UI. This is a <strong>menu in your own language</strong>:
+    numbers in, preview out, typed <code>sim</code>, undo forever.</p>
+    <p class="kicker" data-reveal="3">Every "clean Samsung" guide ends with root. This one doesn't.</p>
   </section>
 
   <section id="how">
-    <div class="sec-head">
-      <h2>How a run actually goes</h2>
-      <p>Five steps. Nothing happens without step 3.</p>
+    <div class="sec-head" data-reveal>
+      <h2>A run, start to finish</h2>
+      <p>Five steps. The phone doesn't change until step five.</p>
     </div>
     <div class="steps">
       <div class="step">
-        <span class="no">01</span>
-        <div><h3>Diagnostics</h3>
-        <p>The tool checks adb, the device and your Android/One UI version before anything else.</p></div>
+        <div><h3><span class="n">01</span>Install adb — once</h3>
+        <p>One command on macOS, Windows or Linux. Google maintains it; the
+        <a href="install.html#adb">install page</a> has all variants.</p></div>
       </div>
       <div class="step">
-        <span class="no">02</span>
-        <div><h3>Preview</h3>
-        <p>Only packages that actually exist on your phone are listed — minus a built-in deny-list
-        of critical components. Each line explains itself.</p></div>
+        <div><h3><span class="n">02</span>USB debugging — once</h3>
+        <p>Seven taps on <em>Build number</em>, one toggle, one <em>Allow</em> on the cable prompt.
+        No cable? Menu option 7 pairs over Wi-Fi instead.</p></div>
       </div>
       <div class="step">
-        <span class="no">03</span>
-        <div><h3>Typed confirmation</h3>
-        <p><code>sim</code> or nothing happens. Closing the window cancels safely.</p></div>
+        <div><h3><span class="n">03</span>Double-click</h3>
+        <p>A numbered menu opens — in your language. Pick <strong>1</strong> for a free
+        health check: adb, device, One UI version.</p></div>
       </div>
       <div class="step">
-        <span class="no">04</span>
-        <div><h3>Apply</h3>
-        <p><code>pm uninstall --user 0</code> per package; failures fall back to disabling the app
-        with its data preserved.</p></div>
+        <div><h3><span class="n">04</span>Read the preview</h3>
+        <p>Every package, what it is, what stops working without it — filtered to what is
+        actually on <em>your</em> phone, minus a hard deny-list. Nothing has happened yet.</p></div>
       </div>
       <div class="step">
-        <span class="no">05</span>
-        <div><h3>Undo anytime</h3>
-        <p>Menu option 4 restores everything this tool ever removed. Reboot, done.</p></div>
+        <div><h3><span class="n">05</span>Type <code>sim</code></h3>
+        <p>Only now does anything leave the phone. Ctrl+C, closing the window, or any
+        other input — all of them cancel safely. Undo is menu option 4.</p></div>
       </div>
     </div>
   </section>
 
   <section id="presets">
-    <div class="sec-head">
-      <h2>Three presets, nested</h2>
-      <p><code>heavy</code> contains <code>light</code> contains <code>basic</code>. Start low; you can always run again.</p>
+    <div class="sec-head" data-reveal>
+      <h2>Three presets. <span class="hot">No trust required.</span></h2>
+      <p><code>heavy</code> ⊃ <code>light</code> ⊃ <code>basic</code> — start low, run again
+      anytime. Numbers below are from a fresh-out-of-box Galaxy on the test rig.</p>
     </div>
-    <div class="preset-grid">
-      <div class="preset">
-        <div class="shell"><div class="core">
-          <div class="top"><span class="name">basic</span><span class="count">51 pkgs</span></div>
-          <p>Preinstalled junk only: Facebook/Netflix/Booking/Amazon, duplicate Samsung
-          user apps, Game Launcher, AR Emoji. Samsung account, Wallet and Galaxy AI stay.</p>
-          <span class="chip low">low risk</span>
-        </div></div>
-      </div>
-      <div class="preset">
-        <div class="shell"><div class="core">
-          <div class="top"><span class="name">light</span><span class="count">98 pkgs</span></div>
-          <p>Everything in basic, plus Chrome, Gmail, "Ok Google", Android Auto, Galaxy Themes,
-          Samsung Pass, Wallet, Bixby, Find My Mobile.</p>
-          <span class="chip mid">medium — have replacements</span>
-        </div></div>
-      </div>
-      <div class="preset">
-        <div class="shell"><div class="core">
-          <div class="top"><span class="name">heavy</span><span class="count">126 pkgs</span></div>
-          <p>Everything in light, plus YouTube, Maps, Gemini, Docs/Sheets/Slides, printing stack,
-          SmartThings, Interpreter. The maximum that is still reversible.</p>
-          <span class="chip high">medium-high — read every line</span>
-        </div></div>
+    <div class="preset-zone">
+      <svg class="connector" viewBox="0 0 16 400" preserveAspectRatio="none" aria-hidden="true">
+        <path d="M8 4 V396" vector-effect="non-scaling-stroke"></path>
+      </svg>
+      <div class="preset-grid">
+        <div class="preset" data-reveal>
+          <div class="shell"><div class="core">
+            <div class="top"><span class="name">basic</span><span class="count">51 pkgs</span></div>
+            <p>The junk drawer: Facebook, Netflix, Booking, AR Emoji, Samsung Free, duplicate
+            Samsung apps. On the test rig's fresh S-series, 20 of these were actually sitting
+            there. Samsung account, Wallet and Galaxy AI stay.</p>
+            <span class="chip low">low risk</span>
+          </div></div>
+        </div>
+        <div class="preset" data-reveal="2">
+          <div class="shell"><div class="core">
+            <div class="top"><span class="name">light</span><span class="count">98 pkgs</span></div>
+            <p>basic, plus the "I already replaced that" tier: Chrome, Gmail, Ok Google,
+            Android Auto, Bixby, Samsung Pass, Themes, Find My Mobile. Have your own
+            apps ready before this one.</p>
+            <span class="chip mid">medium — replacements first</span>
+          </div></div>
+        </div>
+        <div class="preset" data-reveal="3">
+          <div class="shell"><div class="core">
+            <div class="top"><span class="name">heavy</span><span class="count">126 pkgs</span></div>
+            <p>light, plus YouTube, Maps, Gemini, Docs/Sheets/Slides, the printing stack,
+            SmartThings. The maximum that is still one <code>restore</code> away from
+            coming back.</p>
+            <span class="chip high">medium-high — read every line</span>
+          </div></div>
+        </div>
       </div>
     </div>
-    <p class="deny-note"><span class="tag">[never removed]</span> Play Store/Services · SystemUI · Settings ·
-    One UI launcher · dialer · IMS/VoLTE/Wi-Fi calling · Samsung keyboard · setup wizard —
-    the <a href="safety.html#deny-list">deny-list</a> applies even to manual requests.</p>
+    <p class="deny-note"><span class="tag">[never removed]</span> Play Store &amp; Services · SystemUI ·
+    dialer · IMS/VoLTE/Wi-Fi calling · keyboard · update stack — the
+    <a href="safety.html#deny-list">deny-list</a> applies even to manual <code>--only</code> requests. Begging doesn't help.</p>
   </section>
 
-  <section id="why">
-    <div class="sec-head">
-      <h2>Why not Canta or UAD?</h2>
+  <section id="commands" class="cmdstrip">
+    <div class="sec-head" data-reveal>
+      <h2>Every command it will ever run, in plain sight</h2>
+      <p>The exact contract — the same <code>pm</code> a power user types by hand.</p>
     </div>
-    <div class="panel"><div class="core">
-      <p><a href="https://github.com/Universal-Debloater-Alliance/universal-android-debloater-next-generation">Universal
-      Android Debloater</a> and <a href="https://github.com/samolego/Canta">Canta</a> are great —
-      scamsung-debloat borrows risk knowledge from them. It exists for the people they don't
-      serve well: Galaxy owners who don't want to learn a new app or keep Shizuku alive, who
-      want a menu in their own language, presets built specifically for One UI 8/9
-      (from <a href="https://github.com/itxjobe/samsungdebloat">itxjobe's community-tested lists</a>),
-      and a restore path that is one menu option, not a factory reset.</p>
+    <div class="panel" data-reveal><div class="core">
+      <div class="cmdline"><code>pm uninstall --user 0 &lt;pkg&gt;</code>
+        <span>removes for your user profile only — <code>/system</code> untouched, which is exactly why undo exists</span></div>
+      <div class="cmdline"><code>pm disable-user --user 0 &lt;pkg&gt;</code>
+        <span>automatic fallback when uninstall fails — app disabled, data preserved</span></div>
+      <div class="cmdline"><code>cmd package install-existing &lt;pkg&gt;</code>
+        <span>the undo: stock APK comes straight back to your profile</span></div>
+      <div class="cmdline"><code>settings put global/secure …</code>
+        <span>tweaks only — and the original value is recorded before anything changes</span></div>
     </div></div>
   </section>
 
   <section id="faq">
-    <div class="sec-head">
+    <div class="sec-head" data-reveal>
       <h2>Quick answers</h2>
     </div>
     <div class="faq">
-      <details>
+      <details data-reveal>
         <summary>Does it need root? Does it trip Knox?<span class="pm">+</span></summary>
-        <p>No and no. It uses <code>adb shell pm … --user 0</code>, a stock Android feature.
-        Bootloader, <code>/system</code>, Knox and Play Integrity stay untouched — banking
-        apps and Google Pay keep working.</p>
+        <div class="answer"><div><p>No and no. <code>pm --user 0</code> is a stock Android
+        feature — Knox, the bootloader and Play Integrity never notice you were here.
+        Banking apps and Google Pay keep working.</p></div></div>
       </details>
-      <details>
-        <summary>Can I undo everything?<span class="pm">+</span></summary>
-        <p>Yes — menu option 4 restores every app the tool removed, and
-        <code>tweaks --reset</code> returns each setting to its recorded original value.</p>
+      <details data-reveal>
+        <summary>Can I really undo everything?<span class="pm">+</span></summary>
+        <div class="answer"><div><p>Yes. Menu option 4 reinstalls each app via
+        <code>install-existing</code>, tweaks return to their recorded original values with
+        <code>tweaks --reset</code>. The undo lives in a state file — it survives reboots.</p></div></div>
       </details>
-      <details>
+      <details data-reveal>
         <summary>Will an OTA update bring the apps back?<span class="pm">+</span></summary>
-        <p>Samsung OTAs sometimes reinstall their apps. Nothing breaks — run the same preset
-        again after the update.</p>
+        <div class="answer"><div><p>Samsung sometimes reinstalls its apps after an update.
+        Nothing breaks; run the same preset again and carry on.</p></div></div>
       </details>
-      <details>
+      <details data-reveal>
         <summary>Does it free up storage?<span class="pm">+</span></summary>
-        <p>No. APKs stay in the read-only system partition. The gains are RAM, background
-        battery drain, privacy and a clean app drawer — not gigabytes.</p>
+        <div class="answer"><div><p>Zero gigabytes — APKs live in a read-only partition.
+        What you get back is RAM, background battery drain, privacy, and an app drawer
+        that stops being a billboard.</p></div></div>
       </details>
-      <details>
+      <details data-reveal>
         <summary>What if an app I keep depends on a removed one?<span class="pm">+</span></summary>
-        <p>That feature stops working (e.g. watch faces need Samsung services). Every preset
-        line warns you, the preview shows the full list first, and restore brings the
-        dependency back.</p>
+        <div class="answer"><div><p>That feature breaks — watch faces, Samsung Pay plugins,
+        Galaxy Store items. Every preset line warns you first, the preview shows the final
+        list, and restore brings the dependency back.</p></div></div>
       </details>
     </div>
   </section>
 
   <section class="final">
-    <div class="panel"><div class="core">
-      <h2>Ready when you are.</h2>
+    <div class="panel" data-reveal><div class="core">
+      <h2>Five minutes now. A quieter phone for good.</h2>
       <p>adb installed, USB debugging on, one double-click. The preview shows up before
-      your phone changes in any way.</p>
+      your phone changes in any way — and the undo is menu option 4.</p>
       <div class="install-line">
         <code>brew install --cask android-platform-tools</code>
         <code>git clone https://github.com/AurelioMo/scamsung-debloat.git</code>
@@ -287,7 +322,7 @@
 <footer>
   <div class="wrap">
     <div class="cols">
-      <span class="wordmark"><b>$</b> scamsung-debloat</span>
+      <span class="wordmark"><b>$</b> scamsung-debloat<span class="caret"></span></span>
       <span>
         <a href="https://github.com/AurelioMo/scamsung-debloat">repository</a> ·
         <a href="https://github.com/AurelioMo/scamsung-debloat/issues">issues</a> ·

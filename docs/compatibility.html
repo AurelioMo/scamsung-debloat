@@ -15,6 +15,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Onest:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/style.css">
+<script src="assets/main.js" defer></script>
 </head>
 <body>
 <a class="skip-link" href="#main">Skip to content</a>
@@ -38,8 +39,8 @@
   <p class="lede reveal d2">Any Galaxy, any computer with bash and adb —
   and a degradation model that fails toward leftover bloat, never toward breakage.</p>
 
-  <h2 id="phones">Phones and One UI versions</h2>
-  <table>
+  <h2 data-reveal id="phones">Phones and One UI versions</h2>
+  <table data-reveal>
     <thead><tr><th>Firmware</th><th>Status</th></tr></thead>
     <tbody>
       <tr><td><strong>One UI 8/9</strong> (Android 16/17)</td>
@@ -58,8 +59,8 @@
   <a href="https://github.com/AurelioMo/scamsung-debloat/blob/main/docs/oneui-compat.md">docs/oneui-compat.md</a>
   (pt-BR).</p>
 
-  <h2 id="hosts">Computers</h2>
-  <table>
+  <h2 data-reveal id="hosts">Computers</h2>
+  <table data-reveal>
     <thead><tr><th>Host</th><th>Requirement</th></tr></thead>
     <tbody>
       <tr><td><strong>macOS</strong></td><td>Works with the stock bash 3.2 — just add adb.</td></tr>
@@ -71,7 +72,7 @@
   <p>Interface language follows the OS: Português, English, Español
   (<code>SCAMSUNG_LANG</code> overrides).</p>
 
-  <h2 id="limitations">Known limitations</h2>
+  <h2 data-reveal id="limitations">Known limitations</h2>
   <ul>
     <li><strong>No storage freed.</strong> APKs stay in the read-only system partition —
         you gain RAM, battery and privacy, not gigabytes.</li>

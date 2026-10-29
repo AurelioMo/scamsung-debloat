@@ -15,6 +15,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Onest:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/style.css">
+<script src="assets/main.js" defer></script>
 </head>
 <body>
 <a class="skip-link" href="#main">Skip to content</a>
@@ -38,10 +39,10 @@
   <p class="lede reveal d2">This page is the exact contract: what runs on your
   phone, what can never run, and how to undo every bit of it.</p>
 
-  <h2 id="what-it-runs">What the tool actually runs</h2>
+  <h2 data-reveal id="what-it-runs">What the tool actually runs</h2>
   <p>Every phone change goes through <code>adb shell</code> — the same channel a
   power user would type by hand:</p>
-  <table>
+  <table data-reveal>
     <thead><tr><th>Command</th><th>When</th><th>Effect</th></tr></thead>
     <tbody>
       <tr><td><code>pm uninstall --user 0</code></td><td>Removing (default)</td>
@@ -60,7 +61,7 @@
   <p>No root, no bootloader unlock, no partition writes, nothing flashed,
   no daemon left running afterwards.</p>
 
-  <h2 id="deny-list">The deny-list: what can never be removed</h2>
+  <h2 data-reveal id="deny-list">The deny-list: what can never be removed</h2>
   <p>Critical packages are filtered out of every preset <em>and</em> out of manual
   <code>--only</code> requests. You cannot type your way past it:</p>
   <ul class="cols2">
@@ -79,18 +80,18 @@
   through that list. A package Samsung renamed in a new firmware simply doesn't
   match — worst case is leftover bloat, never breakage.</p>
 
-  <h2 id="preview">Mandatory preview, typed confirmation</h2>
+  <h2 data-reveal id="preview">Mandatory preview, typed confirmation</h2>
   <p>There is no flag that removes apps without showing the list first —
   even <code>-y</code> still prints the full preview. Confirmation is a typed word,
   <code>sim</code>, so an accidental Enter never applies anything.</p>
 
-  <h2 id="restore">Restoring</h2>
+  <h2 data-reveal id="restore">Restoring</h2>
   <h3>Everything at once</h3>
   <p>Menu option <strong>4</strong> walks the tool's state file and runs
   <code>install-existing</code> (removed apps) or <code>pm enable</code> (disabled
   ones) on each. Reboot afterwards.</p>
   <h3>A single app, by hand</h3>
-  <div class="codeblock"><pre>adb shell cmd package install-existing com.facebook.katana   <span class="cm"># if removed</span>
+  <div class="codeblock" data-reveal><pre>adb shell cmd package install-existing com.facebook.katana   <span class="cm"># if removed</span>
 adb shell pm enable com.sec.android.app.sbrowser             <span class="cm"># if disabled</span></pre></div>
   <h3>Tweaks</h3>
   <p><code>./scamsung-debloat tweaks --reset</code> restores every setting to its
@@ -102,21 +103,21 @@ adb shell pm enable com.sec.android.app.sbrowser             <span class="cm"># 
   (every action). Deleting that folder forfeits automated restore; apps are still
   recoverable by hand via <code>install-existing</code>.</p>
 
-  <h2 id="risks">The honest risks</h2>
-  <div class="callout warn">
+  <h2 data-reveal id="risks">The honest risks</h2>
+  <div data-reveal class="callout warn"">
     <p><strong>Dependent features break.</strong> Samsung Pay plugins, watch faces and
     Galaxy Store content depend on Samsung services. Each preset line explains its
     consequence; the preview is where you catch this.</p>
   </div>
-  <div class="callout warn">
+  <div data-reveal class="callout warn"">
     <p><strong>OTAs may reinstall apps.</strong> Re-run the preset after a Samsung
     update; nothing breaks meanwhile.</p>
   </div>
-  <div class="callout warn">
+  <div data-reveal class="callout warn"">
     <p><strong>GOS statistics are wiped</strong> by the performance tweak
     (<code>pm clear</code>). Disclosed before confirmation; not restorable.</p>
   </div>
-  <div class="callout">
+  <div data-reveal class="callout"">
     <p><strong>Validated against a simulator.</strong> The 73-check suite runs against
     a fake adb emulating One UI 9 — your exact firmware is the final preview,
     which is why the preview exists.</p>

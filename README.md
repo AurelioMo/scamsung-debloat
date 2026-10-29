@@ -12,111 +12,87 @@
 [![Platform](https://img.shields.io/badge/platform-macOS%20%7C%20Linux%20%7C%20Windows-blue)](#requirements)
 [![Shell: bash 3.2+](https://img.shields.io/badge/shell-bash%203.2%2B-green)](scamsung-debloat)
 
-**Remove Samsung bloatware without root** on One UI 8/9 — macOS, Linux and Windows.
+**Remove Samsung bloatware without root** on One UI 8/9 — preview first,
+typed confirmation, one-command undo. Interface in Português, English and Español.
 
-🌐 [Site](https://aureliomo.github.io/scamsung-debloat/) · 📄 [Versão em Português](README_PT-BR.md)
-A modern rewrite of the archived
-[debloat_samsung_android](https://github.com/invinciblevenom/debloat_samsung_android),
-with presets based on
-[itxjobe/samsungdebloat](https://github.com/itxjobe/samsungdebloat).
-
-**No terminal skills needed: double-click the file, pick numbers from a menu.**
-The whole interface — menus, warnings, errors — follows your OS language
-(Português, English, Español; override with `SCAMSUNG_LANG=pt|en|es`).
+🌐 [Project site](https://aureliomo.github.io/scamsung-debloat/) ·
+📄 [Versão em Português](README_PT-BR.md)
 
 ## 60-second quickstart
 
-1. Install `adb` once: `brew install --cask android-platform-tools` (macOS) ·
-   `winget install --id Google.PlatformTools -e` (Windows) ·
-   `sudo apt install android-tools-adb` (Debian/Ubuntu).
-2. On the phone: tap **Build number** 7× → **Developer options → USB debugging** ON.
-3. [Download the ZIP](https://github.com/AurelioMo/scamsung-debloat/archive/refs/heads/main.zip)
-   or `git clone`, then double-click `scamsung-debloat` (`.cmd` on Windows).
-4. Menu: **1** diagnostics → **2** apply → `basic` → read the preview → type `sim`.
+```bash
+# 1. adb, once per computer:
+brew install --cask android-platform-tools     # macOS
+winget install --id Google.PlatformTools -e    # Windows
+sudo apt install android-tools-adb             # Debian/Ubuntu
 
-Nothing changes on the phone before you type `sim`. Details below.
+# 2. phone, once: Settings → About phone → tap "Build number" 7×
+#    → Developer options → USB debugging ON → plug cable → Allow
 
-## Why another debloat tool?
+# 3. get the tool and double-click it (scamsung-debloat.cmd on Windows)
+git clone https://github.com/AurelioMo/scamsung-debloat.git
+
+# 4. in the menu: 1 → diagnostics, 2 → apply, "basic",
+#    read the preview, type: sim
+```
+
+**Nothing changes on the phone before you type `sim`.** No root, no Knox,
+no bootloader — and menu option 4 restores everything.
+
+## Why this exists
 
 [UAD](https://github.com/Universal-Debloater-Alliance/universal-android-debloater-next-generation)
-and [Canta](https://github.com/samolego/Canta) are excellent apps, and this
-project reuses their risk knowledge. scamsung-debloat exists for what's left
-over: people who don't want to install another app or keep Shizuku running, who
-want a menu in their own language, presets built for One UI 8/9 specifically
-(from [itxjobe's community-tested lists](https://github.com/itxjobe/samsungdebloat)),
-and a restore path that's one menu option instead of a factory reset. It's one
-auditable bash script — the whole safety model fits in your head.
+and [Canta](https://github.com/samolego/Canta) are excellent — this project reuses
+their risk research. scamsung-debloat covers what's left: people who don't want to
+install another app or keep Shizuku running to remove apps, who want a menu in their
+own language, presets tested specifically on One UI 8/9 (based on
+[itxjobe's community lists](https://github.com/itxjobe/samsungdebloat)), and a
+restore path that is one menu option instead of a factory reset. It's a single
+bash script — the entire safety model fits in your head.
+
+## ⚠️ Honest fine print (read this)
+
+> - Everything runs through `adb shell pm … --user 0`: apps leave your user
+>   profile, not `/system`. Knox, warranty and Play Integrity stay intact.
+> - **You always see the full removal list first** and must type `sim`.
+> - Samsung **OTA updates** can reinstall apps — run the preset again, nothing breaks.
+> - Apps that **depend on Samsung services** (watch faces, pay plugins, Galaxy
+>   Store content) break when their dependency goes. Every preset line says so.
+> - **Validated against a fake adb** simulating One UI 9 (see `tests/`), not on
+>   your specific firmware. The preview is the final check — read it.
+> - No storage is freed: APKs stay in the read-only system partition. You gain
+>   RAM, battery, privacy and a clean app drawer. Not gigabytes.
 
 ## Contents
 
-- [⚠️ Read this first](#-read-this-first--always)
+- [60-second quickstart](#60-second-quickstart)
+- [Why this exists](#why-this-exists)
 - [Requirements](#requirements)
-- [Getting started — two clicks, no typing](#getting-started--two-clicks-no-typing)
+- [Usage: the menu](#usage-the-menu)
 - [Presets](#presets)
-- [What applying a preset looks like](#what-applying-a-preset-looks-like)
+- [What a run looks like](#what-a-run-looks-like)
 - [Tweaks](#tweaks-menu-option-5)
 - [Restoring](#restoring)
-- [What this tool does NOT do](#what-this-tool-does-not-do)
-- [Safety design](#safety-design)
 - [FAQ](#faq)
-- [Uninstalling](#uninstalling-the-tool)
+- [Uninstalling](#uninstalling)
 - [Tests](#tests)
 - [Project structure](#project-structure)
+- [Contributing](#contributing)
 - [Credits](#credits)
 - [License](#license)
-
----
-
-## ⚠️ Read this first — always
-
-> **Debloating is reversible here, but it is never risk-free.**
->
-> - Everything this tool does runs through `adb shell pm ... --user 0`: apps are
->   removed from your user profile, not from `/system`. Root is never touched,
->   Knox does not trip, warranty and Play Integrity stay intact.
-> - **Before anything is removed, you always see the full list** and must type
->   `sim` to continue. No surprises.
-> - Removed apps can come back after a **Samsung OTA update**. That's normal —
->   just run it again.
-> - Third-party apps that depend on Samsung services (Samsung pay plugins, watch
->   faces, Galaxy Store content) **can break** when their dependency is removed.
->   Read the preset lines; each one explains what stops working.
-> - Nothing here was tested on **your** device. It was validated against a fake
->   adb simulating a Galaxy (see `tests/`). You are the final preview.
-> - You are responsible for what you confirm. When in doubt, remove less.
-
----
 
 ## Requirements
 
 | | What you need |
 |---|---|
-| Phone | Any Samsung Galaxy on One UI 8/9 (Android 16/17). Older versions work, newer ones trigger a warning first |
-| Computer | `adb` (platform-tools) installed and either macOS, Linux, or Windows with [Git for Windows](https://git-scm.com/download/win) |
-| Cable | USB, or Wi-Fi for wireless pairing (menu option 7) |
+| Phone | Any Samsung Galaxy on One UI 8/9 (Android 16/17). Older versions work too; newer ones trigger a warning, then run |
+| Computer | `adb` (platform-tools) + macOS, Linux, or Windows with [Git for Windows](https://git-scm.com/download/win) |
+| Cable | USB — or Wi-Fi pairing, menu option 7 (Android 11+) |
 
-Install adb once:
+## Usage: the menu
 
-- **macOS:** `brew install --cask android-platform-tools`
-- **Windows:** `winget install --id Google.PlatformTools -e`
-- **Linux:** `sudo apt install android-tools-adb` (Debian/Ubuntu), `sudo dnf install android-tools` (Fedora), `sudo pacman -S android-tools` (Arch)
-
-Prepare the phone once:
-
-1. **Settings → About phone → Software information**
-2. Tap **Build number** 7 times → Developer options unlocked
-3. **Settings → Developer options → USB debugging** → ON
-4. Plug the cable and tap **Allow** on the phone's prompt
-
-## Getting started — two clicks, no typing
-
-1. Download/clone this repo.
-2. Double-click:
-   - **Windows:** `scamsung-debloat.cmd`
-   - **macOS:** `scamsung-debloat` (first time only: right-click → Open, then Open again)
-   - **Linux:** `scamsung-debloat` → choose *Run in Terminal* when asked
-     (if nothing happens, the file needs its executable bit: right-click → Properties → "Allow executing file as program")
-3. A numbered menu appears. **Type a number, press Enter.** That's the whole interface:
+Double-click the file (`scamsung-debloat.cmd` on Windows; on macOS the first time
+it's right-click → Open). A numbered menu appears, in your OS language:
 
 ```
   ╔═╗┌─┐┌─┐┌┬┐┌─┐┬ ┬┌┐┌┌─┐
@@ -135,97 +111,73 @@ no root · fully reversible · One UI 8/9
 Choose:
 ```
 
-> The menu follows your OS language automatically (Português, English, Español —
-> example above in English). Every destructive path shows a preview first and
-> asks for a typed confirmation — invalid input never applies anything.
-
-Recommended first run: **1** (diagnostics) → **2** → `basic` → read the preview →
-type `sim`. You can stop at any point before the `sim` and nothing happens.
+Recommended first run: **1** → **2** → `basic` → read every line → type `sim`.
 
 ## Presets
 
-Each preset is a plain text file in `lists/` — one package per line, each with a
-plain-language explanation of what it is and what you lose. Presets nest:
-`heavy` ⊃ `light` ⊃ `basic`.
+Plain text files in `lists/` — one package per line, each with a plain-language
+explanation of what it is and what you lose. Presets nest: `heavy` ⊃ `light` ⊃ `basic`.
+Numbers below are from a fresh-out-of-box Galaxy on the test rig.
 
 | Preset | Packages | What goes away | Risk |
 |--------|---------:|----------------|------|
-| `basic` | 51 | Preinstalled junk only: Facebook/Netflix/Booking/Amazon, duplicate Samsung user apps (Notes, Calendar, Clock, Calculator, Messages, Internet, Health, Free, Members), Game Launcher, AR Emoji/Zone | **Low.** No system component is touched; Samsung account, Wallet and Galaxy AI stay. Worst case: an app you liked is gone — restore brings it back |
-| `light` | 98 | Everything in `basic`, plus: Chrome, Gmail, "Ok Google", Android Auto, Galaxy Themes, Samsung Pass, Wallet, Smart Switch, Bixby wakeup/Vision, Find My Mobile | **Medium.** You lose Samsung payments and Find My Mobile. Only pick this if you already replaced those with Google/third-party apps |
-| `heavy` | 126 | Everything in `light`, plus: YouTube, Maps, Gemini, Docs/Sheets/Slides, printing stack, SmartThings, Interpreter, Samsung Email | **Medium-high.** Maximum that is still reversible. Have replacements installed first |
+| `basic` | 51 | Preinstalled junk: Facebook/Netflix/Booking/Amazon, duplicate Samsung user apps (Notes, Calendar, Clock, Calculator, Internet, Health, Free, Members), Game Launcher, AR Emoji/Zone | **Low.** No system component touched; Samsung account, Wallet and Galaxy AI stay |
+| `light` | 98 | `basic` + Chrome, Gmail, "Ok Google", Android Auto, Galaxy Themes, Samsung Pass, Wallet, Smart Switch, Bixby wakeup/Vision, Find My Mobile | **Medium.** No Samsung payments or Find My Mobile — replace those first |
+| `heavy` | 126 | `light` + YouTube, Maps, Gemini, Docs/Sheets/Slides, printing stack, SmartThings, Interpreter, Samsung Email | **Medium-high.** Maximum that is still reversible |
 
-What never gets removed, in any preset: Play Store/Services, SystemUI, Settings,
-One UI launcher, phone/dialer, IMS/VoLTE/Wi-Fi calling, Samsung keyboard, setup
-wizard, and anything else on the built-in **deny-list**. The tool also *skips*
-any package that isn't actually installed on your device instead of erroring out.
+Never removed, in any preset or manual request: **Play Store/Services, SystemUI,
+Settings, One UI launcher, dialer, IMS/VoLTE/Wi-Fi calling, Samsung keyboard, setup
+wizard** — the built-in deny-list can't be typed around. Packages that don't exist
+on your phone are skipped, never invented.
 
-## What applying a preset looks like
+## What a run looks like
 
-Option **2** always starts with the preview — there is no way to skip it:
+Real output against the project's fake-adb test rig (your phone shows its own
+numbers — here, 20 of the 51 `basic` packages were actually installed):
 
 ```
-  ~ com.facebook.katana  — Facebook
-  ~ com.sec.android.app.sbrowser  — Samsung Internet (navegador)
-  ...
+==> Galaxy SM-S931B (e1q) · Android 17 · One UI 9.0
+==> 55 packages on device · preset "basic" flags 51
 
-  remover:              47
-  já removidos antes:   2
-  ausentes no aparelho: 2 (ignorados)
+  ~ com.facebook.katana          — Facebook
+  ~ com.netflix.mediaclient      — Netflix
+  ~ com.samsung.android.aremoji  — AR Emoji
+  ~ com.sec.android.app.sbrowser — Samsung Internet
+    … 46 more, each explained …
 
-Digite sim para continuar:
+Type sim to continue: sim
+==> Applying (uninstall)…
+==> removed: 20 · skipped (not on this device): 31
+==> undo anytime: ./scamsung-debloat restore
 ```
 
-Each package prints with its explanation. Only after you type `sim` does anything
-leave the phone. Uninstall failures automatically fall back to *disabling* the
-app instead (data preserved).
+Uninstall failures fall back to *disabling* the app (data preserved).
 
 ## Tweaks (menu option 5)
 
-All tweaks record their original value and are exactly reversible with `r`:
+Every tweak records its original value and is exactly reversible with `r`:
 
 | Option | What it does | The honest trade-off |
 |--------|--------------|----------------------|
-| `p` **performance** (default) | Disables GOS (Samsung's game throttling), turns off RAM Plus + zram, animations at 0.35x, disables in-game thermal control | More heat under load; multitasking may reload apps more; GOS play statistics are wiped (`pm clear`) |
-| `a` **light** | Animations at 0.5x, background app freezer, adaptive battery ON, less background Wi-Fi/Bluetooth scanning | Slightly worse network-based location accuracy |
-| `s` **status** | Shows every tweak this tool changed and the original value | — |
+| `p` **performance** (default) | Disables GOS (Samsung's game throttling), RAM Plus + zram off, animations at 0.35x, in-game thermal control off | More heat under load; multitasking may reload apps; GOS play statistics are wiped (`pm clear`) |
+| `a` **light** | Animations 0.5x, background app freezer, adaptive battery ON, less background Wi-Fi/Bluetooth scanning | Slightly worse network-based location accuracy |
+| `s` **status** | Shows every tweak this tool changed, with original values | — |
 | `r` **reset** | Restores exactly what **this tool** changed, re-enables GOS | — |
 
-Settings that don't exist on your firmware are skipped with a warning, never invented.
+Settings that don't exist on your firmware are skipped with a warning.
 
 ## Restoring
 
-- **Everything:** menu option **4** (`restaurar tudo`).
-- **One app, by hand:** `adb shell cmd package install-existing <package>` or
-  `adb shell pm enable <package>` if it was disabled.
-- Full log of every action: `~/.local/share/scamsung-debloat/`
-  (`state.tsv`, `tweaks.tsv`, `logs/session-*.tsv`).
-
-## What this tool does NOT do
-
-- ❌ No root, no bootloader, no custom recovery — ever.
-- ❌ Doesn't flash, wipe, or modify `/system`; storage space isn't freed (APKs
-  stay in the system partition — the win is RAM, battery, privacy, and an empty
-  app drawer).
-- ❌ Doesn't block OTA updates or guarantee a reinstalled app stays gone.
-- ❌ Doesn't promise better benchmark scores. It removes apps you don't want;
-  performance gains are a side effect, not the contract.
-
-## Safety design
-
-1. **Deny-list first:** critical packages can't even be typed in by hand.
-2. **Device-filtered:** only what exists on *your* phone is touched — new firmware
-   with renamed packages degrades to "left some bloat behind", never to breakage.
-3. **Preview is mandatory:** the removal list is always shown; confirmation is
-   always required.
-4. **Fallback:** uninstall fails ⇒ app is disabled instead.
-5. **Undo:** every action is logged and `Restaurar tudo` reverts it.
-
----
+- **Everything:** menu option **4**.
+- **One app, by hand:** `adb shell cmd package install-existing <package>` (removed)
+  or `adb shell pm enable <package>` (disabled).
+- **Tweaks:** `./scamsung-debloat tweaks --reset`.
+- **Records:** `~/.local/share/scamsung-debloat/` — `state.tsv`, `tweaks.tsv`,
+  `logs/session-*.tsv`. Deleting that folder forfeits automated restore; apps are
+  still recoverable by hand.
 
 <details>
-<summary><b>Advanced: non-interactive CLI flags</b> (optional — the numbered menu above covers normal use)</summary>
-
-For scripting or repeat runs, the same operations exist as flags:
+<summary><b>Advanced: CLI flags</b> (the menu covers normal use)</summary>
 
 ```bash
 ./scamsung-debloat doctor            # diagnostics
@@ -248,70 +200,51 @@ For scripting or repeat runs, the same operations exist as flags:
 #   -v / -q          verbose / quiet
 ```
 
-Environment: `ANDROID_SERIAL` (same as `--serial`), `SCAMSUNG_LANG=pt|en|es`
-(force the UI language), `SCAMSUNG_DEBLOAT_DATA_DIR` (state/logs location),
-`NO_COLOR=1`.
+Environment: `SCAMSUNG_LANG=pt|en|es` (force the UI language), `ANDROID_SERIAL`,
+`SCAMSUNG_DEBLOAT_DATA_DIR`, `NO_COLOR=1`.
 
 </details>
 
 ## FAQ
 
-**Does scamsung-debloat require root?**
-No. It only runs `adb shell pm … --user 0`, the same ADB commands a power user
-would type by hand. Apps are removed from your user profile, not from the
-system partition.
-
-**Will it trip Knox, void my warranty or break Play Integrity?**
-No. `--user 0` package removal is a stock Android feature exposed through ADB —
-nothing touches the bootloader, `/system`, Knox or device attestation. Banking
-apps and Google Pay keep working.
-
-**Which devices are supported?**
-Built and validated for Samsung Galaxy devices running One UI 8/9 (Android
-16/17). Older One UI versions work the same way; newer, unseen versions trigger
-a warning but still run, because the tool only touches packages that actually
-exist on the phone.
+**Does it need root? Does it trip Knox or break Play Integrity?**
+No, on all counts. `--user 0` package removal is a stock Android feature — nothing
+touches the bootloader, `/system`, Knox or attestation. Banking apps and Google
+Pay keep working.
 
 **How do I get a removed app back?**
-Menu option **4** (*Restore everything*) brings back everything this tool
-removed. Single app, by hand: `adb shell cmd package install-existing <package>`.
+Menu option 4 restores everything. Single app by hand:
+`adb shell cmd package install-existing <package>`.
 
-**Will a Samsung OTA update bring the bloatware back?**
-Sometimes. OTAs can reinstall Samsung apps — just run the same preset again.
-Nothing breaks in the meantime.
+**Will an OTA update bring the bloatware back?**
+Sometimes. Re-run the preset after the update; nothing breaks meanwhile.
 
-**Does debloating free up storage space?**
-No. The APKs stay in the read-only system partition. The gains are RAM,
-background battery drain, privacy and a clean app drawer — not gigabytes.
+**Does it free up storage?**
+No — APKs stay in the read-only system partition. The gains are RAM, background
+battery drain, privacy and a clean app drawer.
 
-**What if an app I keep depends on something a preset removes?**
-The dependent feature stops working (e.g. Samsung watch faces need Samsung
-apps). Every preset line explains what breaks, the preview shows the full list
-before anything happens, and restore always brings the dependency back.
+**What if an app I keep depends on a removed one?**
+The dependent feature stops working until restore. Every preset line explains its
+consequence and the preview shows the full list first.
 
-**Can I remove just one specific app?**
-Yes: `./scamsung-debloat apply --only com.facebook.katana`. The deny-list still
-applies — `explain <package>` tells you what anything is before you touch it.
+**Can I remove just one app?**
+`./scamsung-debloat apply --only com.facebook.katana`. The deny-list still
+applies; `explain <package>` tells you what anything is before you touch it.
 
-**Where is the log of what the tool did?**
-`~/.local/share/scamsung-debloat/` — `state.tsv` (pending restores),
-`tweaks.tsv` (original tweak values) and `logs/session-*.tsv` (every action).
+## Uninstalling
 
-## Uninstalling the tool
+The tool installs nothing on your computer — it is one script:
 
-The tool installs nothing on your computer — it is one script. To remove it
-completely:
-
-1. Run menu option **4** (*Restore everything*) so the phone goes back to stock.
-2. Delete the cloned/downloaded folder.
-3. Delete the state folder: `rm -rf ~/.local/share/scamsung-debloat`.
+1. Menu option **4** to restore the phone to stock.
+2. Delete the cloned folder.
+3. Delete the state folder: `rm -rf ~/.local/share/scamsung-debloat` (Linux/macOS).
 
 Disable USB debugging on the phone if you enabled it only for this.
 
 ## Tests
 
-The suite runs against a **fake adb** that simulates a Galaxy on One UI 9 — no
-phone required, and no real device is ever touched by the tests:
+The suite runs against a **fake adb** simulating a Galaxy on One UI 9 — no phone
+required, no real device ever touched:
 
 ```bash
 bash tests/run.sh
@@ -324,31 +257,28 @@ path (idempotence, status, exact reset, `--performance`, `--ram-plus`).
 ## Project structure
 
 ```
-scamsung-debloat          # the tool
-scamsung-debloat.cmd      # Windows double-click entry (cmd.exe)
-scamsung-debloat.ps1      # Windows double-click entry (PowerShell)
-lists/basic.txt           # 51 packages, each explained
-lists/light.txt           # 98
-lists/heavy.txt           # 126
-lists/README.md           # preset file format
-lang/pt-BR.sh             # interface strings, complete baseline
-lang/en.sh                # English overlay
-lang/es.sh                # Spanish overlay
-tests/adb                 # fake adb (Galaxy One UI 9 simulator)
-tests/run.sh              # test suite
-docs/oneui-compat.md      # One UI 8/9 compatibility notes (pt-BR)
-docs/auditoria-pacotes.md # package risk audit (pt-BR, historical)
-docs/index.html           # project website (GitHub Pages)
-README_PT-BR.md           # this file, em português
+scamsung-debloat           # the tool
+scamsung-debloat.cmd       # Windows double-click entry (cmd.exe)
+scamsung-debloat.ps1       # Windows double-click entry (PowerShell)
+lists/basic.txt            # 51 packages, each explained
+lists/light.txt            # 98
+lists/heavy.txt            # 126
+lists/README.md            # preset file format
+lang/pt-BR.sh              # interface strings, complete baseline
+lang/en.sh                 # English overlay
+lang/es.sh                 # Spanish overlay
+tests/adb                  # fake adb (Galaxy One UI 9 simulator)
+tests/run.sh               # test suite
+docs/                      # project website (GitHub Pages) + pt-BR compat notes
+README_PT-BR.md            # this file, em português
 ```
 
 ## Contributing
 
-Issues and PRs are welcome. Most wanted: **package reports** (what a package
-does on your specific firmware — open an issue with `explain` output), new
-**interface languages** (one file in `lang/`, `self-test` validates parity), and
-preset line improvements. Run `bash tests/run.sh` before sending anything —
-73/73 is the bar.
+Issues and PRs are welcome. Most wanted: **package reports** (what a package does
+on your specific firmware — open an issue with `explain` output), new **interface
+languages** (one file in `lang/`, `self-test` validates parity), and preset line
+improvements. Run `bash tests/run.sh` before sending anything — 73/73 is the bar.
 
 ## Credits
 

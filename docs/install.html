@@ -15,6 +15,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Onest:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/style.css">
+<script src="assets/main.js" defer></script>
 </head>
 <body>
 <a class="skip-link" href="#main">Skip to content</a>
@@ -38,8 +39,8 @@
   <p class="lede reveal d2">You only type things in step 1 — the tool itself is a
   double-click menu that follows your language.</p>
 
-  <h2 id="adb">Install adb — once per computer</h2>
-  <table>
+  <h2 data-reveal id="adb">Install adb — once per computer</h2>
+  <table data-reveal>
     <thead><tr><th>Platform</th><th>Command</th></tr></thead>
     <tbody>
       <tr><td><strong>macOS</strong></td><td><code>brew install --cask android-platform-tools</code></td></tr>
@@ -54,19 +55,19 @@
   <a href="https://developer.android.com/tools/releases/platform-tools">official platform-tools ZIP</a>
   from Google, folder added to your <code>PATH</code>.</p>
 
-  <h2 id="phone">Prepare the phone — once per phone</h2>
+  <h2 data-reveal id="phone">Prepare the phone — once per phone</h2>
   <ol class="big-steps">
     <li><strong>Settings → About phone → Software information</strong></li>
     <li>Tap <strong>Build number</strong> 7 times — Developer options unlocked.</li>
     <li><strong>Settings → Developer options → USB debugging</strong> → ON.</li>
     <li>Plug the cable in and tap <strong>Allow</strong> on the phone's prompt.</li>
   </ol>
-  <div class="callout">
+  <div data-reveal class="callout"">
     <p><strong>No cable?</strong> Menu option <strong>7</strong> pairs over Wi-Fi
     instead (Android 11+ wireless debugging).</p>
   </div>
 
-  <h2 id="run">Run it — no typing</h2>
+  <h2 data-reveal id="run">Run it — no typing</h2>
   <ol class="big-steps">
     <li>Get the repo: <a href="https://github.com/AurelioMo/scamsung-debloat/archive/refs/heads/main.zip">download the ZIP</a>
       and extract, or <code>git clone https://github.com/AurelioMo/scamsung-debloat.git</code></li>
@@ -78,14 +79,14 @@
     <li>Recommended first run: <strong>1</strong> diagnostics → <strong>2</strong> apply →
       <code>basic</code> → read the preview → type <code>sim</code>.</li>
   </ol>
-  <div class="callout ok">
+  <div data-reveal class="callout ok"">
     <p><strong>Nothing is removed before you type <code>sim</code>.</strong>
     Closing the window, Ctrl+C or any other input cancels without touching the phone.</p>
   </div>
 
-  <h2 id="cli">Prefer the command line?</h2>
+  <h2 data-reveal id="cli">Prefer the command line?</h2>
   <p>Every menu action has a flag equivalent — same preview, same confirmation:</p>
-  <div class="codeblock"><pre>./scamsung-debloat doctor            <span class="cm"># diagnostics</span>
+  <div class="codeblock" data-reveal><pre>./scamsung-debloat doctor            <span class="cm"># diagnostics</span>
 ./scamsung-debloat list              <span class="cm"># show presets</span>
 ./scamsung-debloat apply basic       <span class="cm"># preview → type "sim" → apply</span>
 ./scamsung-debloat apply --only com.facebook.katana
@@ -97,7 +98,7 @@
   <code>--skip a,b</code> · <code>--serial</code> · <code>-v</code>/<code>-q</code> ·
   <code>--help</code> · <code>--version</code></p>
 
-  <h2 id="language">Interface language</h2>
+  <h2 data-reveal id="language">Interface language</h2>
   <p>The tool follows your OS automatically — Português, English or Español.
   Override with <code>SCAMSUNG_LANG=pt|en|es</code>.</p>
 
