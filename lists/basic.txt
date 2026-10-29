@@ -1,6 +1,7 @@
 # Basic: nível "safe user apps" do itxjobe/samsungdebloat.
 # Apps de usuário que saem sem tocar em sistema. Risco: BAIXO.
-# Mantém tudo de comunicação, conta Samsung, saúde e Galaxy AI.
+# Sistema intocado: conta Samsung, Wallet, Bixby, Galaxy AI e telefonia ficam.
+# Atenção: apps Samsung de usuário (Relógio, Agenda, SMS, Health...) saem aqui.
 
 com.amazon.appmanager                                 # gerenciador de apps da Amazon (pré-instalado)
 com.amazon.mShop.android.shopping                     # Amazon Shopping
