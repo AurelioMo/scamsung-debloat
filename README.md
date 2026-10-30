@@ -15,7 +15,6 @@
 **Remove Samsung bloatware without root** on One UI 8/9 — preview first,
 typed confirmation, one-command undo. Interface in Português, English and Español.
 
-🌐 [Project site](https://aureliomo.github.io/scamsung-debloat/) ·
 📄 [Versão em Português](README_PT-BR.md)
 
 ## 60-second quickstart
@@ -269,7 +268,6 @@ lang/en.sh                 # English overlay
 lang/es.sh                 # Spanish overlay
 tests/adb                  # fake adb (Galaxy One UI 9 simulator)
 tests/run.sh               # test suite
-docs/                      # project website (GitHub Pages) + pt-BR compat notes
 README_PT-BR.md            # this file, em português
 ```
 
