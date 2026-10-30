@@ -1,2 +1,7 @@
 .DS_Store
 *.tmp
+
+# local agent/skill tooling (not part of the shipped site)
+.agents/
+.taste-skill/
+skills-lock.json
