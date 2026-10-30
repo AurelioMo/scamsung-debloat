@@ -4,19 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>scamsung-debloat — read every package before it leaves your Galaxy</title>
-<meta name="description" content="A bash script for Galaxy phones on One UI 8 and 9. It prints every preinstalled package with a line saying what it is, waits for one word, then removes it. No root, and restore puts everything back.">
+<meta name="description" content="A bash script for Galaxy phones on One UI 8 and 9. It lists every preinstalled app with a sentence on what it is, then removes what you confirm. One device read, one pass, no root, and restore puts everything back.">
 <link rel="canonical" href="https://aureliomo.github.io/scamsung-debloat/">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%231428a0'/%3E%3Cpath d='M10 20l6-8M10 20h6' fill='none' stroke='%23fff' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="scamsung-debloat">
 <meta property="og:title" content="scamsung-debloat — read every package before it leaves your Galaxy">
-<meta property="og:description" content="Fifty-one to a hundred and twenty-six preinstalled packages, printed one per line with the sentence that says what each one is. Then one word. Then, if you want, one command back.">
+<meta property="og:description" content="Every preinstalled app on your Galaxy, printed one per line with the sentence that says what it is. One read, one preview, one confirmed pass. No root, and one command puts it back.">
 <meta property="og:url" content="https://aureliomo.github.io/scamsung-debloat/">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/style.css?v=8">
-<script src="assets/main.js?v=8" defer></script>
+<link rel="stylesheet" href="assets/style.css?v=9">
+<script src="assets/main.js?v=9" defer></script>
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -61,7 +61,7 @@
             <span class="slot-row"><code class="slot-tick">~</code><span class="slot-app">Netflix</span><code class="slot-pkg">com.netflix.mediaclient</code></span>
             <span class="slot-row"><code class="slot-tick">~</code><span class="slot-app">OneDrive</span><code class="slot-pkg">com.microsoft.skydrive</code></span>
             <span class="slot-row slot-row-extra"><code class="slot-tick">~</code><span class="slot-app">Google Photos</span><code class="slot-pkg">com.google.android.apps.photos</code></span>
-            <span class="slot-foot">nothing applied · type sim</span>
+            <span class="slot-foot">preview only · nothing applied</span>
           </span>
           <span class="hero-more">before it goes.</span>
         </span>
@@ -69,10 +69,11 @@
 
       <div class="hero-foot">
         <div class="hero-intro" data-rise="2">
-          <p class="lead">A bash script for Galaxy phones on One UI 8 and 9. It asks the device what it
-          shipped with, drops the packages your firmware does not have, and prints the rest one per line
-          with the sentence explaining what each one is.</p>
+          <p class="lead">Your Galaxy ships with apps you never chose and cannot remove without root. On
+          One UI 8 and 9, this script lists every one of them, says in a sentence what each is, and removes
+          the ones you confirm.</p>
           <ul class="hero-facts">
+            <li>One device read, then a single pass</li>
             <li>No root, no Knox, bootloader stays locked</li>
             <li>46 package patterns it refuses to touch</li>
             <li>Every removal written to <code>state.tsv</code></li>
@@ -83,6 +84,40 @@
           <a class="link-arrow" href="#demo">Watch a run</a>
         </div>
       </div>
+    </div>
+  </section>
+
+  <!-- ==================== one read, one pass ==================== -->
+  <section class="section section-tight run-section" id="run">
+    <div class="wrap">
+      <header class="sec-head sec-split">
+        <h2 data-rise>One read, one pass.</h2>
+        <p data-rise="2">A preset run looks at the device once and never stops to ask again. That is the
+        part most tools skip, and it is what keeps a run short.</p>
+      </header>
+
+      <dl class="run-facts" data-rise>
+        <div>
+          <dt>The device is read once.</dt>
+          <dd><code>pm list packages</code> runs at the start of the run. Every check after it is a local
+          lookup, not another round trip over the cable.</dd>
+        </div>
+        <div>
+          <dt>Absent packages cost nothing.</dt>
+          <dd>A name your phone does not carry is dropped from the list before the cable is used. It is
+          counted and skipped, never retried.</dd>
+        </div>
+        <div>
+          <dt>One confirmation for the whole list.</dt>
+          <dd>One preview, one confirmation, then adb works the list end to end. No tapping through apps
+          one at a time.</dd>
+        </div>
+        <div>
+          <dt>No reboot.</dt>
+          <dd>Removing an app for user 0 takes effect at once, so the home screen is already clean when
+          the script hands the phone back.</dd>
+        </div>
+      </dl>
     </div>
   </section>
 
@@ -133,7 +168,7 @@
   <section class="section" id="presets">
     <div class="wrap">
       <header class="sec-head sec-split">
-        <h2 data-rise>51, 98, 126.</h2>
+        <h2 data-rise>Pick how deep to go.</h2>
         <p data-rise="2">Three presets, each a plain text file in <code>lists/</code> with one package and one
         explanation per line. Read it, edit it, or add your own and point the script at it. Nothing about a
         preset is compiled in.</p>
@@ -141,7 +176,6 @@
 
       <div class="preset-list">
         <article class="preset-row" data-rise>
-          <div class="preset-num" data-num="51" aria-hidden="true"></div>
           <div class="preset-main">
             <div class="preset-title"><h3>Basic</h3><span class="tag">Start here</span></div>
             <p>Apps Samsung ships on someone else's behalf (Meta, Microsoft, Netflix, Booking, Amazon), plus
@@ -149,27 +183,24 @@
             <p class="preset-caveat">Only user apps. A name your phone lacks is counted and skipped, never forced.</p>
           </div>
           <div class="preset-side">
-            <p><strong>20</strong> removed on the rig; the other 31 were not installed there.</p>
+            <p><strong>51</strong> packages listed. 20 were removed on the rig; the other 31 were not installed there.</p>
             <a class="preset-link" href="install.html#run">Install with Basic</a>
           </div>
         </article>
 
         <article class="preset-row" data-rise>
-          <div class="preset-num" data-num="98" aria-hidden="true"></div>
           <div class="preset-main">
             <div class="preset-title"><h3>Light</h3></div>
             <p>Basic plus what you can replace with something already on the phone: Chrome, Gmail, Bixby,
             Samsung Pass, YouTube Music, Google TV.</p>
-            
           </div>
           <div class="preset-side">
-            <p><strong>27</strong> removed on the rig; the other 71 were not installed there.</p>
+            <p><strong>98</strong> packages listed. 27 were removed on the rig; the other 71 were not installed there.</p>
             <a class="preset-link" href="install.html#run">Install with Light</a>
           </div>
         </article>
 
         <article class="preset-row" data-rise>
-          <div class="preset-num" data-num="126" aria-hidden="true"></div>
           <div class="preset-main">
             <div class="preset-title"><h3>Heavy</h3></div>
             <p>Light plus YouTube, Maps, Gemini, Docs, the print stack and SmartThings. The longest list,
@@ -177,7 +208,7 @@
             <p class="preset-caveat">The deny-list never fires here, because no preset line reaches it.</p>
           </div>
           <div class="preset-side">
-            <p><strong>30</strong> removed on the rig; the other 96 were not installed there.</p>
+            <p><strong>126</strong> packages listed. 30 were removed on the rig; the other 96 were not installed there.</p>
             <a class="preset-link" href="install.html#run">Install with Heavy</a>
           </div>
         </article>
@@ -423,11 +454,10 @@ REMOVED	com.google.android.apps.photos</pre>
   <!-- ==================== close ==================== -->
   <section class="close-section">
     <div class="wrap close-in">
-      <span class="close-mark" aria-hidden="true">sim</span>
       <div class="close-copy" data-rise>
-        <h2>Read the list. Type sim.</h2>
-        <p>adb, one USB toggle, one double-click. The first run takes five minutes; the ones after it take
-        seconds, because the phone keeps none of the state.</p>
+        <h2>One pass, and it is done.</h2>
+        <p>adb, one USB toggle, one double-click. From there a preset is one preview and one confirmation,
+        and <code>restore</code> is a command that reads <code>state.tsv</code> line by line.</p>
         <div class="close-actions">
           <a class="btn btn-light" href="install.html">Install scamsung-debloat</a>
           <a class="close-link" href="safety.html">Read the safety notes</a>
